@@ -22,12 +22,6 @@ const CATEGORY_SHORT: Record<TaxonomyCategory, string> = {
   social: "SOC",
 };
 
-interface RadarProps {
-  scores: Record<TaxonomyCategory, number>;
-  size?: number;
-  isPioneer?: boolean;
-}
-
 function polarToXY(angle: number, radius: number, cx: number, cy: number) {
   const rad = ((angle - 90) * Math.PI) / 180;
   return { x: cx + radius * Math.cos(rad), y: cy + radius * Math.sin(rad) };
@@ -49,7 +43,13 @@ function makePolygonPoints(
     .join(" ");
 }
 
-function makeGridPolygon(level: number, count: number, maxRadius: number, cx: number, cy: number): string {
+function makeGridPolygon(
+  level: number,
+  count: number,
+  maxRadius: number,
+  cx: number,
+  cy: number
+): string {
   const r = (level / 100) * maxRadius;
   const step = 360 / count;
   return Array.from({ length: count }, (_, i) => {
@@ -58,7 +58,12 @@ function makeGridPolygon(level: number, count: number, maxRadius: number, cx: nu
   }).join(" ");
 }
 
-export function RadarChart({ scores, size = 200, isPioneer = false }: RadarProps) {
+/** Build a raw SVG string for the radar chart. */
+export function buildRadarSvg(
+  scores: Record<TaxonomyCategory, number>,
+  size = 200,
+  isPioneer = false
+): string {
   const cx = size / 2;
   const cy = size / 2;
   const maxRadius = size * 0.38;
@@ -70,85 +75,50 @@ export function RadarChart({ scores, size = 200, isPioneer = false }: RadarProps
   const dataPoints = makePolygonPoints(values, maxRadius, cx, cy);
 
   const fillColor = isPioneer
-    ? "rgba(234, 179, 8, 0.25)"
-    : "rgba(99, 102, 241, 0.25)";
+    ? "rgba(234,179,8,0.25)"
+    : "rgba(99,102,241,0.25)";
   const strokeColor = isPioneer ? "#eab308" : "#818cf8";
 
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox={`0 0 ${size} ${size}`}
-      style={{ display: "flex" }}
-    >
-      {/* Grid rings */}
-      {[25, 50, 75, 100].map((level) => (
-        <polygon
-          key={level}
-          points={makeGridPolygon(level, count, maxRadius, cx, cy)}
-          fill="none"
-          stroke="rgba(255,255,255,0.1)"
-          strokeWidth="1"
-        />
-      ))}
+  const gridRings = [25, 50, 75, 100]
+    .map(
+      (level) =>
+        `<polygon points="${makeGridPolygon(level, count, maxRadius, cx, cy)}" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>`
+    )
+    .join("");
 
-      {/* Axis lines */}
-      {CATEGORY_ORDER.map((_, i) => {
-        const { x, y } = polarToXY(step * i, maxRadius, cx, cy);
-        return (
-          <line
-            key={i}
-            x1={cx}
-            y1={cy}
-            x2={x}
-            y2={y}
-            stroke="rgba(255,255,255,0.08)"
-            strokeWidth="1"
-          />
-        );
-      })}
+  const axisLines = CATEGORY_ORDER.map((_, i) => {
+    const { x, y } = polarToXY(step * i, maxRadius, cx, cy);
+    return `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>`;
+  }).join("");
 
-      {/* Data polygon */}
-      <polygon
-        points={dataPoints}
-        fill={fillColor}
-        stroke={strokeColor}
-        strokeWidth="2"
-      />
+  const dataPolygon = `<polygon points="${dataPoints}" fill="${fillColor}" stroke="${strokeColor}" stroke-width="2"/>`;
 
-      {/* Data points */}
-      {values.map((v, i) => {
-        const r = (v / 100) * maxRadius;
-        const { x, y } = polarToXY(step * i, r, cx, cy);
-        return (
-          <circle
-            key={i}
-            cx={x}
-            cy={y}
-            r="3"
-            fill={strokeColor}
-          />
-        );
-      })}
+  const circles = values
+    .map((v, i) => {
+      const r = (v / 100) * maxRadius;
+      const { x, y } = polarToXY(step * i, r, cx, cy);
+      return `<circle cx="${x}" cy="${y}" r="3" fill="${strokeColor}"/>`;
+    })
+    .join("");
 
-      {/* Labels */}
-      {CATEGORY_ORDER.map((cat, i) => {
-        const { x, y } = polarToXY(step * i, labelRadius, cx, cy);
-        return (
-          <text
-            key={cat}
-            x={x}
-            y={y}
-            textAnchor="middle"
-            dominantBaseline="central"
-            fill="rgba(255,255,255,0.6)"
-            fontSize="10"
-            fontFamily="monospace"
-          >
-            {CATEGORY_SHORT[cat]}
-          </text>
-        );
-      })}
-    </svg>
-  );
+  const labels = CATEGORY_ORDER.map((cat, i) => {
+    const { x, y } = polarToXY(step * i, labelRadius, cx, cy);
+    return `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" fill="rgba(255,255,255,0.6)" font-size="10" font-family="monospace">${CATEGORY_SHORT[cat]}</text>`;
+  }).join("");
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${gridRings}${axisLines}${dataPolygon}${circles}${labels}</svg>`;
+}
+
+/** Return a base64 data URI for the radar chart SVG. */
+export function radarDataUri(
+  scores: Record<TaxonomyCategory, number>,
+  size = 200,
+  isPioneer = false
+): string {
+  const svg = buildRadarSvg(scores, size, isPioneer);
+  const b64 =
+    typeof Buffer !== "undefined"
+      ? Buffer.from(svg).toString("base64")
+      : btoa(svg);
+  return `data:image/svg+xml;base64,${b64}`;
 }

@@ -12,11 +12,19 @@ export async function GET(
   // For now, use mock data
   const score = MOCK_SCORE;
 
-  return new ImageResponse(
-    <ScoreCard score={score} handle={handle} />,
-    {
-      width: 600,
-      height: 400,
-    }
-  );
+  try {
+    return new ImageResponse(
+      <ScoreCard score={score} handle={handle} />,
+      {
+        width: 600,
+        height: 400,
+      }
+    );
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return new Response(JSON.stringify({ error: msg }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 }

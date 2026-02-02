@@ -1,6 +1,6 @@
 import type { ScoreResult, TaxonomyCategory } from "./types";
-import { CATEGORY_EMOJI, CATEGORY_LABELS } from "./types";
-import { RadarChart } from "./radar-svg";
+import { CATEGORY_EMOJI } from "./types";
+import { radarDataUri } from "./radar-svg";
 import { ARCHETYPE_NAMES } from "./narrative-templates";
 
 interface CardProps {
@@ -64,7 +64,7 @@ export function ScoreCard({ score, handle }: CardProps) {
           VIBE CODER SCORE
         </span>
         {isPioneer && (
-          <span style={{ fontSize: "14px", color: "#eab308" }}>
+          <span style={{ display: "flex", fontSize: "14px", color: "#eab308" }}>
             🏔️ Pioneer
           </span>
         )}
@@ -112,12 +112,13 @@ export function ScoreCard({ score, handle }: CardProps) {
           >
             <span
               style={{
+                display: "flex",
                 fontSize: "16px",
                 fontWeight: 600,
                 color: "rgba(255,255,255,0.7)",
               }}
             >
-              Level {score.level}
+              {`Level ${score.level}`}
             </span>
             <span
               style={{
@@ -160,7 +161,7 @@ export function ScoreCard({ score, handle }: CardProps) {
               lineHeight: 1.4,
             }}
           >
-            &ldquo;{score.tier.tagline}&rdquo;
+            {`\u201C${score.tier.tagline}\u201D`}
           </div>
 
           {/* Pioneer innovation callout */}
@@ -179,7 +180,7 @@ export function ScoreCard({ score, handle }: CardProps) {
                 color: "#fde68a",
               }}
             >
-              🏔️ {score.pioneer.innovations[0].name}
+              {`🏔️ ${score.pioneer.innovations[0].name}`}
             </div>
           )}
         </div>
@@ -192,10 +193,11 @@ export function ScoreCard({ score, handle }: CardProps) {
             justifyContent: "center",
           }}
         >
-          <RadarChart
-            scores={scoreMap}
-            size={200}
-            isPioneer={isPioneer}
+          <img
+            src={radarDataUri(scoreMap, 200, isPioneer)}
+            width={200}
+            height={200}
+            style={{ display: "flex" }}
           />
         </div>
       </div>
@@ -243,7 +245,7 @@ export function ScoreCard({ score, handle }: CardProps) {
             color: "rgba(255,255,255,0.3)",
           }}
         >
-          vibecheck.dev/@{handle}
+          {`vibecheck.dev/@${handle}`}
         </span>
         <span
           style={{
