@@ -1,0 +1,14 @@
+{
+  "name": "vibecheck",
+  "private": true,
+  "workspaces": [
+    "packages/probe",
+    "packages/web"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev -w packages/web",
+    "build:web": "npm run build -w packages/web",
+    "build:probe": "npm run build -w packages/probe",
+    "build": "npm run build:probe && npm run build:web"
+  }
+}
