@@ -10,11 +10,19 @@
     "dist",
     "src/taxonomy/registry.json"
   ],
+  "engines": {
+    "node": ">=18.3.0"
+  },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && cp src/taxonomy/registry.json dist/taxonomy/registry.json",
     "dev": "tsc --watch",
     "prepublishOnly": "npm run build"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/garygurevich/vibecheck"
+  },
+  "homepage": "https://vibecheck.dev",
   "keywords": [
     "vibe-coding",
     "ai-coding",
