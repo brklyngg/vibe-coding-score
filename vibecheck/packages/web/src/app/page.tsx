@@ -14,11 +14,17 @@ export default function Home() {
         </p>
         <div className="mb-6 rounded-lg border border-white/10 bg-white/5 p-4 font-mono text-sm">
           <span className="text-white/40">$</span>{" "}
-          <span className="text-indigo-300">npx vibecheck-probe</span>
+          <span className="text-indigo-300">npx vibecheck-probe --submit --handle yourname</span>
         </div>
-        <p className="text-sm text-white/30">
+        <p className="mb-4 text-sm text-white/30">
           Observer → Apprentice → Practitioner → Builder → Operator → Commander → Architect → Orchestrator → Industrialist
         </p>
+        <a
+          href="/result/demo"
+          className="text-sm text-indigo-400 underline underline-offset-4 hover:text-indigo-300"
+        >
+          View a sample result →
+        </a>
       </div>
     </main>
   );

@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
 import { parseArgs } from "node:util";
-import { platform } from "node:os";
-import { readFileSync } from "node:fs";
+import { platform, homedir } from "node:os";
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { randomUUID } from "node:crypto";
 import type { Detection, ProbeResult } from "./types.js";
 import { computeScore } from "./scoring/engine.js";
 import { runAllScanners } from "./scanners/index.js";
@@ -31,6 +32,8 @@ function getVersion(): string {
   }
 }
 
+const HANDLE_RE = /^[a-z0-9_-]{3,39}$/;
+
 function printHelp(): void {
   console.log(`
   vibecheck-probe — scan your AI coding setup
@@ -42,6 +45,10 @@ function printHelp(): void {
     --help         Show this help message
     --json         Output raw ProbeResult as JSON
     --no-confirm   Skip detection confirmation prompt
+    --submit       Submit results to vibecheck.dev
+    --handle <id>  Your handle (3-39 chars, lowercase, hyphens, underscores)
+    --url <url>    Override submit URL (default: https://vibecheck.dev)
+    --yes          Skip submit confirmation prompt
 `);
 }
 
@@ -51,6 +58,10 @@ async function main(): Promise<void> {
       help: { type: "boolean", default: false },
       json: { type: "boolean", default: false },
       "no-confirm": { type: "boolean", default: false },
+      submit: { type: "boolean", default: false },
+      handle: { type: "string" },
+      url: { type: "string" },
+      yes: { type: "boolean", default: false },
     },
     strict: true,
   });
@@ -121,6 +132,72 @@ async function main(): Promise<void> {
     console.log(JSON.stringify(result, null, 2));
   } else {
     renderResults(score, confirmed);
+  }
+
+  // --submit flow
+  if (values.submit) {
+    const handle = values.handle;
+    if (!handle || !HANDLE_RE.test(handle)) {
+      console.error(
+        "\x1b[31m  --handle is required for --submit (3-39 chars, lowercase alphanumeric/hyphens/underscores)\x1b[0m"
+      );
+      process.exit(1);
+    }
+
+    // Token management: ~/.vibecheck/token
+    const tokenDir = join(homedir(), ".vibecheck");
+    const tokenPath = join(tokenDir, "token");
+    let submissionToken: string;
+    if (existsSync(tokenPath)) {
+      submissionToken = readFileSync(tokenPath, "utf-8").trim();
+    } else {
+      submissionToken = randomUUID();
+      mkdirSync(tokenDir, { recursive: true });
+      writeFileSync(tokenPath, submissionToken, { mode: 0o600 });
+    }
+
+    // Confirmation unless --yes
+    if (!values.yes && !isJson) {
+      const rl = await import("node:readline/promises").then((m) =>
+        m.createInterface({ input: process.stdin, output: process.stdout })
+      );
+      const answer = await rl.question(
+        `\n  Submit results as \x1b[1m${handle}\x1b[0m to vibecheck.dev? [Y/n] `
+      );
+      rl.close();
+      if (answer.trim().toLowerCase() === "n") {
+        console.log("  Submission skipped.");
+        return;
+      }
+    }
+
+    const submitUrl = values.url ?? "https://vibecheck.dev";
+    try {
+      const res = await fetch(`${submitUrl}/api/submit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ handle, probeResult: result, submissionToken }),
+      });
+
+      if (res.ok) {
+        const body = (await res.json()) as { url: string };
+        console.log(`\n  \x1b[32m✓ Published!\x1b[0m ${body.url}\n`);
+      } else if (res.status === 403) {
+        console.error(
+          "\n  \x1b[31m✗ This handle is owned by a different machine.\x1b[0m"
+        );
+        console.error(
+          "  If this is your handle, restore ~/.vibecheck/token from the original machine.\n"
+        );
+      } else {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        console.error(`\n  \x1b[31m✗ Submit failed: ${body.error ?? res.statusText}\x1b[0m\n`);
+      }
+    } catch (err) {
+      console.error(
+        `\n  \x1b[33m⚠ Could not reach ${submitUrl} — results saved locally only.\x1b[0m\n`
+      );
+    }
   }
 }
 
