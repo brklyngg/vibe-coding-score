@@ -62,6 +62,8 @@ export interface Detection {
   tier: DetectionTier;
   taxonomyMatch: string | null; // null = innovation candidate
   details?: Record<string, unknown>;
+  points?: number; // exact point value (overrides tier-based points when present)
+  scanScope?: "project" | "workspace" | "global"; // where the detection was found
 }
 
 export interface ScanResult {

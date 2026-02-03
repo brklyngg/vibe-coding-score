@@ -18,6 +18,7 @@ import { MemoryScanner } from "./scanners/memory.js";
 import { SecurityScanner } from "./scanners/security.js";
 import { DeployScanner } from "./scanners/deploy.js";
 import { SocialScanner } from "./scanners/social.js";
+import { UniversalFileScanner, getSupersededIds } from "./scanners/universal-file.js";
 import { renderResults, createSpinner } from "./output/terminal.js";
 
 function getVersion(): string {
@@ -44,6 +45,7 @@ function printHelp(): void {
     --help           Show this help message
     --json           Output raw ProbeResult as JSON
     --merge <file>   Merge detections from another scan (JSON file)
+    --deep           Scan home directory for global AI config (crontab, launchd)
     --submit         Submit results to vibecheck.dev
     --handle <id>    Your handle (3-39 chars, lowercase, hyphens, underscores)
     --url <url>      Override submit URL (default: https://vibecheck.dev)
@@ -56,6 +58,7 @@ async function main(): Promise<void> {
     options: {
       help: { type: "boolean", default: false },
       json: { type: "boolean", default: false },
+      deep: { type: "boolean", default: false },
       merge: { type: "string" },
       submit: { type: "boolean", default: false },
       handle: { type: "string" },
@@ -72,6 +75,8 @@ async function main(): Promise<void> {
 
   const isJson = values.json ?? false;
 
+  const isDeep = values.deep ?? false;
+
   const scanners = [
     new EnvironmentScanner(),
     new McpScanner(),
@@ -82,6 +87,7 @@ async function main(): Promise<void> {
     new SecurityScanner(),
     new DeployScanner(),
     new SocialScanner(),
+    new UniversalFileScanner(isDeep), // must be last — supersedes v2 for shared artifacts
   ];
 
   const spinner = isJson ? null : createSpinner("Scanning your AI setup...");
@@ -92,14 +98,28 @@ async function main(): Promise<void> {
   spinner?.stop();
 
   // Flatten and deduplicate detections by id
+  // UFS runs last — collect its detections to know which v2 IDs to suppress
+  const supersededV2Ids = getSupersededIds();
+  const ufsResult = scanResults.find((r) => r.scanner === "universal-file");
+  const ufsDetectionIds = new Set(ufsResult?.detections.map((d) => d.id) ?? []);
+
+  // Build set of v2 IDs that UFS actually covered (supersedes + UFS emitted something)
+  const suppressedV2Ids = new Set<string>();
+  for (const v2Id of supersededV2Ids) {
+    // Check if any UFS detection declares it supersedes this v2 ID
+    const hasUfsReplacement = ufsResult?.detections.some((d) => d.id.startsWith("ufs:"));
+    if (hasUfsReplacement) suppressedV2Ids.add(v2Id);
+  }
+
   const seen = new Set<string>();
   const detections: Detection[] = [];
   for (const result of scanResults) {
     for (const d of result.detections) {
-      if (!seen.has(d.id)) {
-        seen.add(d.id);
-        detections.push(d);
-      }
+      if (seen.has(d.id)) continue;
+      // Skip v2 detections when UFS supersedes them
+      if (result.scanner !== "universal-file" && suppressedV2Ids.has(d.id)) continue;
+      seen.add(d.id);
+      detections.push(d);
     }
   }
 

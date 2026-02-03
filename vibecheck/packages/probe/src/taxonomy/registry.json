@@ -99,5 +99,91 @@
   { "id": "github-repos", "name": "Public GitHub repositories", "category": "social", "tier": "intermediate", "signals": ["git remote"] },
   { "id": "npm-public", "name": "Published npm packages", "category": "social", "tier": "advanced", "signals": ["package.json private:false"] },
   { "id": "slack-webhook", "name": "Slack webhook integration", "category": "social", "tier": "intermediate", "signals": ["SLACK_WEBHOOK"] },
-  { "id": "discord-bot", "name": "Discord bot integration", "category": "social", "tier": "intermediate", "signals": ["DISCORD_WEBHOOK", "DISCORD_BOT_TOKEN"] }
+  { "id": "discord-bot", "name": "Discord bot integration", "category": "social", "tier": "intermediate", "signals": ["DISCORD_WEBHOOK", "DISCORD_BOT_TOKEN"] },
+
+  { "id": "ufs:claude-md:deep", "name": "CLAUDE.md deep config", "category": "tooling", "tier": "advanced", "signals": ["CLAUDE.md >100 lines + keywords"] },
+  { "id": "ufs:claude-md:deep:continuity", "name": "CLAUDE.md deep continuity", "category": "continuity", "tier": "advanced", "signals": ["CLAUDE.md >100 lines continuity"] },
+  { "id": "ufs:claude-md:deep:autonomy", "name": "CLAUDE.md autonomy guidance", "category": "autonomy", "tier": "basic", "signals": ["CLAUDE.md autonomy"] },
+  { "id": "ufs:claude-md:rich", "name": "CLAUDE.md rich config", "category": "tooling", "tier": "intermediate", "signals": ["CLAUDE.md >50 lines"] },
+  { "id": "ufs:claude-md:rich:continuity", "name": "CLAUDE.md continuity context", "category": "continuity", "tier": "basic", "signals": ["CLAUDE.md >50 lines continuity"] },
+  { "id": "ufs:claude-md:exists", "name": "CLAUDE.md exists", "category": "tooling", "tier": "basic", "signals": ["CLAUDE.md"] },
+
+  { "id": "ufs:claude-dir:advanced", "name": ".claude/ advanced config", "category": "tooling", "tier": "advanced", "signals": [".claude/ agents/skills/rules/hooks"] },
+  { "id": "ufs:claude-dir:advanced:autonomy", "name": ".claude/ autonomy features", "category": "autonomy", "tier": "basic", "signals": [".claude/ autonomy"] },
+  { "id": "ufs:claude-settings:custom", "name": ".claude/settings.json custom", "category": "tooling", "tier": "basic", "signals": [".claude/settings.json non-default"] },
+  { "id": "ufs:claude-dir:exists", "name": ".claude/ directory", "category": "tooling", "tier": "basic", "signals": [".claude/"] },
+
+  { "id": "ufs:cursorrules:rich", "name": ".cursorrules rich config", "category": "tooling", "tier": "intermediate", "signals": [".cursorrules >30 lines"] },
+  { "id": "ufs:cursorrules:rich:continuity", "name": ".cursorrules continuity", "category": "continuity", "tier": "basic", "signals": [".cursorrules continuity"] },
+  { "id": "ufs:cursorrules:exists", "name": ".cursorrules exists", "category": "tooling", "tier": "basic", "signals": [".cursorrules"] },
+  { "id": "ufs:cursor-dir:rules", "name": ".cursor/ rules", "category": "tooling", "tier": "intermediate", "signals": [".cursor/rules"] },
+
+  { "id": "ufs:copilot-instructions:rich", "name": "Copilot instructions rich", "category": "tooling", "tier": "intermediate", "signals": ["copilot-instructions.md >20 lines"] },
+  { "id": "ufs:copilot-instructions:exists", "name": "Copilot instructions", "category": "tooling", "tier": "basic", "signals": ["copilot-instructions.md"] },
+
+  { "id": "ufs:agents-md:deep", "name": "AGENTS.md deep coordination", "category": "continuity", "tier": "advanced", "signals": ["AGENTS.md >50 lines + behavioral"] },
+  { "id": "ufs:agents-md:deep:autonomy", "name": "AGENTS.md autonomy", "category": "autonomy", "tier": "intermediate", "signals": ["AGENTS.md autonomy coordination"] },
+  { "id": "ufs:agents-md:exists", "name": "AGENTS.md exists", "category": "tooling", "tier": "basic", "signals": ["AGENTS.md"] },
+
+  { "id": "ufs:soul-md:rich", "name": "SOUL.md rich spec", "category": "continuity", "tier": "intermediate", "signals": ["SOUL.md >20 lines"] },
+  { "id": "ufs:soul-md:rich:intelligence", "name": "SOUL.md intelligence", "category": "intelligence", "tier": "basic", "signals": ["SOUL.md intelligence spec"] },
+  { "id": "ufs:soul-md:exists", "name": "SOUL.md identity spec", "category": "continuity", "tier": "basic", "signals": ["SOUL.md"] },
+
+  { "id": "ufs:user-md:exists", "name": "USER.md", "category": "continuity", "tier": "basic", "signals": ["USER.md"] },
+
+  { "id": "ufs:mcp-json:many", "name": ".mcp.json many servers", "category": "tooling", "tier": "advanced", "signals": [".mcp.json >6 servers"] },
+  { "id": "ufs:mcp-json:several", "name": ".mcp.json several servers", "category": "tooling", "tier": "intermediate", "signals": [".mcp.json >3 servers"] },
+  { "id": "ufs:mcp-json:exists", "name": ".mcp.json exists", "category": "tooling", "tier": "basic", "signals": [".mcp.json"] },
+  { "id": "ufs:mcp-sdk:pioneer", "name": "MCP SDK (Pioneer)", "category": "tooling", "tier": "elite", "signals": ["@modelcontextprotocol/sdk"] },
+
+  { "id": "ufs:memory-dir:heartbeat", "name": "Memory heartbeat state", "category": "autonomy", "tier": "basic", "signals": ["memory/heartbeat-state.json"] },
+  { "id": "ufs:memory-dir:active", "name": "Memory active work", "category": "continuity", "tier": "basic", "signals": ["memory/active-work.md"] },
+  { "id": "ufs:memory-dir:rich", "name": "Memory rich history", "category": "continuity", "tier": "intermediate", "signals": ["memory/ >5 files"] },
+  { "id": "ufs:memory-dir:exists", "name": "Memory directory", "category": "continuity", "tier": "basic", "signals": ["memory/"] },
+
+  { "id": "ufs:memory-md:rich", "name": "MEMORY.md rich", "category": "continuity", "tier": "intermediate", "signals": ["MEMORY.md >50 lines"] },
+  { "id": "ufs:memory-md:exists", "name": "MEMORY.md exists", "category": "continuity", "tier": "basic", "signals": ["MEMORY.md"] },
+
+  { "id": "ufs:heartbeat-md:exists", "name": "HEARTBEAT.md", "category": "autonomy", "tier": "basic", "signals": ["HEARTBEAT.md"] },
+  { "id": "ufs:evolve-md:exists", "name": "EVOLVE.md", "category": "continuity", "tier": "basic", "signals": ["EVOLVE.md"] },
+  { "id": "ufs:handoff:exists", "name": "Handoff/session files", "category": "continuity", "tier": "basic", "signals": ["handoff*", "handover*", "session-state*"] },
+
+  { "id": "ufs:specs-dir:exists", "name": "Specs directory", "category": "ops", "tier": "intermediate", "signals": ["specs/"] },
+  { "id": "ufs:prd:exists", "name": "PRD document", "category": "ops", "tier": "intermediate", "signals": ["docs/PRD*.md"] },
+
+  { "id": "ufs:test-ratio:high", "name": "High test ratio", "category": "ship", "tier": "advanced", "signals": ["test ratio >0.3"] },
+  { "id": "ufs:test-ratio:medium", "name": "Medium test ratio", "category": "ship", "tier": "intermediate", "signals": ["test ratio >0.1"] },
+  { "id": "ufs:test-ratio:zero", "name": "No tests (penalty)", "category": "ship", "tier": "basic", "signals": ["test ratio = 0"] },
+
+  { "id": "ufs:env-example:exists", "name": ".env.example", "category": "social", "tier": "basic", "signals": [".env.example"] },
+
+  { "id": "ufs:readme:badges", "name": "README badges", "category": "ops", "tier": "basic", "signals": ["README.md badges"] },
+  { "id": "ufs:readme:rich", "name": "README.md rich", "category": "ops", "tier": "intermediate", "signals": ["README.md >100 lines"] },
+  { "id": "ufs:readme:exists", "name": "README.md exists", "category": "ops", "tier": "basic", "signals": ["README.md"] },
+
+  { "id": "ufs:ci:complex", "name": "Multiple CI workflows", "category": "ship", "tier": "intermediate", "signals": [".github/workflows/ 2+"] },
+  { "id": "ufs:ci:exists", "name": "CI workflow", "category": "ship", "tier": "basic", "signals": [".github/workflows/"] },
+
+  { "id": "ufs:docker:exists", "name": "Dockerfile", "category": "ship", "tier": "basic", "signals": ["Dockerfile"] },
+  { "id": "ufs:docker-compose:exists", "name": "Docker Compose", "category": "ship", "tier": "basic", "signals": ["docker-compose.yml"] },
+
+  { "id": "ufs:turbo:exists", "name": "Turborepo", "category": "ops", "tier": "basic", "signals": ["turbo.json"] },
+  { "id": "ufs:nx:exists", "name": "Nx", "category": "ops", "tier": "basic", "signals": ["nx.json"] },
+
+  { "id": "ufs:codeowners:exists", "name": "CODEOWNERS", "category": "social", "tier": "basic", "signals": [".github/CODEOWNERS"] },
+  { "id": "ufs:pr-template:exists", "name": "PR template", "category": "social", "tier": "basic", "signals": [".github/PULL_REQUEST_TEMPLATE.md"] },
+  { "id": "ufs:changelog:exists", "name": "CHANGELOG", "category": "ops", "tier": "basic", "signals": ["CHANGELOG.md"] },
+  { "id": "ufs:husky:exists", "name": "Husky git hooks", "category": "ops", "tier": "basic", "signals": [".husky/"] },
+  { "id": "ufs:license:exists", "name": "LICENSE", "category": "social", "tier": "basic", "signals": ["LICENSE"] },
+
+  { "id": "ufs:security:canary", "name": "Canary in config", "category": "security", "tier": "basic", "signals": ["canary keyword"] },
+  { "id": "ufs:security:injection", "name": "Injection defense", "category": "security", "tier": "basic", "signals": ["injection defense keyword"] },
+  { "id": "ufs:security:confirm", "name": "Confirmation requirement", "category": "security", "tier": "basic", "signals": ["require confirmation"] },
+  { "id": "ufs:security:gitignore", "name": ".gitignore secrets", "category": "security", "tier": "basic", "signals": [".gitignore secret patterns"] },
+
+  { "id": "ufs:cron:ai", "name": "AI crontab entries", "category": "autonomy", "tier": "basic", "signals": ["crontab AI"] },
+  { "id": "ufs:launchd:ai", "name": "AI launchd services", "category": "autonomy", "tier": "basic", "signals": ["launchctl AI"] },
+
+  { "id": "ufs:monorepo:large", "name": "Large monorepo", "category": "ops", "tier": "basic", "signals": [">5 workspaces"] },
+  { "id": "ufs:monorepo:ai-consistent", "name": "Consistent AI config", "category": "tooling", "tier": "basic", "signals": ["CLAUDE.md across workspaces"] }
 ]

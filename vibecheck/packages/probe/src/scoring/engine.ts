@@ -24,7 +24,7 @@ export function computeCategoryScores(detections: Detection[]): CategoryScore[] 
     const tierRank = { basic: 0, intermediate: 1, advanced: 2, elite: 3 };
 
     for (const d of categoryDetections) {
-      raw += TIER_POINTS[d.tier];
+      raw += d.points ?? TIER_POINTS[d.tier];
       if (tierRank[d.tier] > tierRank[topTier]) {
         topTier = d.tier;
       }
