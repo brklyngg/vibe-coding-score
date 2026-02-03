@@ -31,10 +31,11 @@ export class AgentsScanner implements Scanner {
       // directory doesn't exist
     }
 
-    // Check for AGENTS.md, SOUL.md, EVOLVE.md
+    // Check for AGENTS.md, SOUL.md, EVOLVE.md — CWD first, then home dir
     const specialFiles = [
       { file: "AGENTS.md", id: "agents-md" },
       { file: "SOUL.md", id: "soul-md" },
+      { file: "EVOLVE.md", id: "evolve-md" },
     ] as const;
 
     for (const { file, id } of specialFiles) {
@@ -43,6 +44,12 @@ export class AgentsScanner implements Scanner {
           id,
           source: file,
           confidence: "high",
+        });
+      } else if (await fileExists(`~/${file}`)) {
+        findings.push({
+          id,
+          source: `~/${file}`,
+          confidence: "medium",
         });
       }
     }
@@ -71,6 +78,21 @@ export class AgentsScanner implements Scanner {
           source: ".claude/skills/",
           confidence: "high",
           details: { count: skills.length },
+        });
+      }
+    } catch {
+      // directory doesn't exist
+    }
+
+    // Check .claude/commands/ directory
+    try {
+      const commands = await readdir(".claude/commands");
+      if (commands.length > 0) {
+        findings.push({
+          id: "claude-commands",
+          source: ".claude/commands/",
+          confidence: "high",
+          details: { count: commands.length },
         });
       }
     } catch {

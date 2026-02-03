@@ -10,28 +10,28 @@ Two-package monorepo: `vibecheck-probe` (npm CLI that scans your AI coding setup
 vibecheck/
 ├── packages/probe/     # npm: vibecheck-probe (TypeScript CLI)
 │   └── src/
-│       ├── index.ts               # CLI entry point (--help, --json, --no-confirm)
+│       ├── index.ts               # CLI entry point (--help, --json, --submit)
 │       ├── types.ts               # ProbeResult, Detection, ScoreResult, TaxonomyCategory
 │       ├── scoring/engine.ts      # detections → category scores → level → tier → type code → pioneer
 │       ├── scoring/tiers.ts       # tier lookup helpers
 │       ├── taxonomy/
-│       │   ├── registry.json      # 74-entry lookup table (id, name, category, tier, signals)
+│       │   ├── registry.json      # 89-entry lookup table (id, name, category, tier, signals)
 │       │   └── classifier.ts      # RawFinding → Detection[] via registry lookup
 │       ├── scanners/
 │       │   ├── index.ts           # Scanner interface + runAllScanners (Promise.allSettled)
 │       │   ├── utils.ts           # fileExists, readFileIfExists, readJsonIfExists, shellOutput
-│       │   ├── environment.ts     # API keys, model routing, local models (ollama/lms)
-│       │   ├── mcp.ts             # MCP servers from Claude settings, CLI tools
-│       │   ├── agents.ts          # Subagents, hooks, AGENTS.md, SOUL.md, skills
+│       │   ├── environment.ts     # API keys (.env + shell config), model routing, local models
+│       │   ├── mcp.ts             # MCP servers (Code + Desktop + project-scoped), CLI tools
+│       │   ├── agents.ts          # Subagents, hooks, AGENTS.md, SOUL.md, EVOLVE.md, skills, commands
 │       │   ├── orchestration.ts   # tmux, worktrees, orchestrator CLIs, crontab
-│       │   ├── repositories.ts    # CI/CD workflows, test configs, npm scripts, ops signals
-│       │   ├── memory.ts          # CLAUDE.md, memories, rules, cursorrules, daily logs
+│       │   ├── repositories.ts    # CI/CD, test/E2E configs, lint/format, TS strict, npm scripts
+│       │   ├── memory.ts          # CLAUDE.md, memories, rules, cursorrules, windsurfrules, copilot, logs
 │       │   ├── security.ts        # gitignore, file perms, agent perms, canary tokens
-│       │   ├── deploy.ts          # vercel/netlify/fly/docker configs, deploy workflows
+│       │   ├── deploy.ts          # vercel/netlify/fly/cloudflare/docker configs, deploy CLIs
 │       │   └── social.ts          # git remote, npm public, webhooks
 │       └── output/
-│           ├── terminal.ts        # chalk + ora rich CLI output
-│           └── confirm.ts         # Y/n/edit detection confirmation
+│           ├── terminal.ts        # chalk + ora rich CLI output (bar chart, narrative)
+│           └── narrative.ts       # Dimension commentary + narrative generator
 └── packages/web/       # Next.js 15: vibecheck.dev
     └── src/
         ├── app/               # App router pages + API routes
@@ -57,7 +57,6 @@ npm run build:probe  # TypeScript compile probe + copy registry.json to dist
 # Run the probe CLI locally
 node packages/probe/dist/index.js --help
 node packages/probe/dist/index.js --json         # JSON output (ProbeResult shape)
-node packages/probe/dist/index.js --no-confirm   # Skip confirmation prompt
 ```
 
 ## Scoring System
@@ -74,9 +73,13 @@ Observer (0-10) → Apprentice (11-20) → Practitioner (21-30) → Builder (31-
 
 ## Scanner Pipeline
 
-The probe runs 9 scanners in parallel via `Promise.allSettled`. Each scanner emits `RawFinding[]`, passes them through `classify()` which maps IDs to the registry for category/tier/name, and returns `ScanResult`. Unknown IDs get `taxonomyMatch: null` (innovation candidates). The CLI deduplicates by ID, optionally confirms with user, then feeds detections into `computeScore()`.
+The probe runs 9 scanners in parallel via `Promise.allSettled`. Each scanner emits `RawFinding[]`, passes them through `classify()` which maps IDs to the registry for category/tier/name, and returns `ScanResult`. Unknown IDs get `taxonomyMatch: null` (innovation candidates). The CLI deduplicates by ID and feeds detections directly into `computeScore()` — no confirmation prompt.
 
-Registry is a flat JSON array — editable without recompilation. No network calls (privacy-first); social scanner is local-only for v1.
+Terminal output: tier header → narrative paragraph (2-3 sentences from dimension commentary) → aligned bar chart → detection list → pioneer badge → growth areas → next tier hint.
+
+Registry is a flat JSON array (89 entries) — editable without recompilation. Only file content read is `tsconfig.json` (one boolean check for strict mode); all other detections are existence-based or key-name pattern matching. No network calls (privacy-first); social scanner is local-only for v1.
+
+Narrative commentary is duplicated in `packages/probe/src/output/narrative.ts` and `packages/web/src/lib/narrative-templates.ts` — extract to `@vibecheck/core` when a third consumer appears.
 
 ## Context Docs
 

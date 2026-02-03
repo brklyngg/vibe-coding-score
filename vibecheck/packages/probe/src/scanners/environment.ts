@@ -56,6 +56,25 @@ export class EnvironmentScanner implements Scanner {
       }
     }
 
+    // Scan .env and .env.local in CWD (key names only, never values)
+    const envFiles = [".env", ".env.local"];
+    for (const envFile of envFiles) {
+      const envContent = await readFileIfExists(envFile);
+      if (!envContent) continue;
+      for (const [envVar, detectionId] of Object.entries(API_KEY_MAP)) {
+        if (seen.has(detectionId)) continue;
+        const pattern = new RegExp(`^${envVar}\\s*=`, "m");
+        if (pattern.test(envContent)) {
+          seen.add(detectionId);
+          findings.push({
+            id: detectionId,
+            source: envFile,
+            confidence: "high",
+          });
+        }
+      }
+    }
+
     // Detect model routing aliases
     const aliasPattern = /alias\s+(\w+).*model/gi;
     const aliases: string[] = [];

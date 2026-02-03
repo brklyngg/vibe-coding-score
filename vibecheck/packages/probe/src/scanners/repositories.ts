@@ -4,6 +4,11 @@ import type { Scanner } from "./index.js";
 import { classify, type RawFinding } from "../taxonomy/classifier.js";
 import { fileExists, readJsonIfExists, readFileIfExists } from "./utils.js";
 
+interface TsConfig {
+  compilerOptions?: { strict?: boolean; [key: string]: unknown };
+  [key: string]: unknown;
+}
+
 interface PackageJson {
   scripts?: Record<string, string>;
   devDependencies?: Record<string, string>;
@@ -51,6 +56,48 @@ export class RepositoriesScanner implements Scanner {
           break;
         }
       }
+    }
+
+    // E2E test framework configs
+    const e2eConfigs = [
+      { glob: "playwright.config", id: "playwright" },
+      { glob: "cypress.config", id: "cypress" },
+    ] as const;
+
+    for (const { glob, id } of e2eConfigs) {
+      const extensions = ["", ".ts", ".js", ".mjs", ".cjs"];
+      for (const ext of extensions) {
+        if (await fileExists(`${glob}${ext}`)) {
+          findings.push({ id, source: `${glob}${ext}`, confidence: "high" });
+          break;
+        }
+      }
+    }
+
+    // Code quality configs
+    const codeQualityConfigs = [
+      { globs: ["eslint.config.js", "eslint.config.mjs", "eslint.config.cjs", "eslint.config.ts", ".eslintrc", ".eslintrc.js", ".eslintrc.json", ".eslintrc.yml"], id: "eslint" },
+      { globs: ["prettier.config.js", "prettier.config.mjs", "prettier.config.cjs", ".prettierrc", ".prettierrc.js", ".prettierrc.json", ".prettierrc.yml"], id: "prettier" },
+      { globs: ["biome.json", "biome.jsonc"], id: "biome" },
+    ] as const;
+
+    for (const { globs, id } of codeQualityConfigs) {
+      for (const file of globs) {
+        if (await fileExists(file)) {
+          findings.push({ id, source: file, confidence: "high" });
+          break;
+        }
+      }
+    }
+
+    // TypeScript strict mode
+    const tsconfig = await readJsonIfExists<TsConfig>("tsconfig.json");
+    if (tsconfig?.compilerOptions?.strict === true) {
+      findings.push({
+        id: "typescript-strict",
+        source: "tsconfig.json",
+        confidence: "high",
+      });
     }
 
     // Also check pyproject.toml for pytest

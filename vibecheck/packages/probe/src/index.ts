@@ -19,7 +19,6 @@ import { SecurityScanner } from "./scanners/security.js";
 import { DeployScanner } from "./scanners/deploy.js";
 import { SocialScanner } from "./scanners/social.js";
 import { renderResults, createSpinner } from "./output/terminal.js";
-import { confirmDetections } from "./output/confirm.js";
 
 function getVersion(): string {
   try {
@@ -44,7 +43,6 @@ function printHelp(): void {
   Options:
     --help         Show this help message
     --json         Output raw ProbeResult as JSON
-    --no-confirm   Skip detection confirmation prompt
     --submit       Submit results to vibecheck.dev
     --handle <id>  Your handle (3-39 chars, lowercase, hyphens, underscores)
     --url <url>    Override submit URL (default: https://vibecheck.dev)
@@ -57,7 +55,6 @@ async function main(): Promise<void> {
     options: {
       help: { type: "boolean", default: false },
       json: { type: "boolean", default: false },
-      "no-confirm": { type: "boolean", default: false },
       submit: { type: "boolean", default: false },
       handle: { type: "string" },
       url: { type: "string" },
@@ -72,7 +69,6 @@ async function main(): Promise<void> {
   }
 
   const isJson = values.json ?? false;
-  const noConfirm = values["no-confirm"] ?? false;
 
   const scanners = [
     new EnvironmentScanner(),
@@ -105,18 +101,7 @@ async function main(): Promise<void> {
     }
   }
 
-  // Confirm with user (unless --json or --no-confirm)
-  let confirmed: Detection[];
-  if (isJson || noConfirm) {
-    confirmed = detections;
-  } else {
-    confirmed = await confirmDetections(detections);
-    if (confirmed.length === 0) {
-      process.exit(0);
-    }
-  }
-
-  const score = computeScore(confirmed);
+  const score = computeScore(detections);
   const version = getVersion();
 
   const result: ProbeResult = {
@@ -124,14 +109,14 @@ async function main(): Promise<void> {
     timestamp: new Date().toISOString(),
     platform: platform(),
     scanResults,
-    detections: confirmed,
+    detections,
     score,
   };
 
   if (isJson) {
     console.log(JSON.stringify(result, null, 2));
   } else {
-    renderResults(score, confirmed);
+    renderResults(score, detections);
   }
 
   // --submit flow
@@ -181,7 +166,15 @@ async function main(): Promise<void> {
 
       if (res.ok) {
         const body = (await res.json()) as { url: string };
-        console.log(`\n  \x1b[32m✓ Published!\x1b[0m ${body.url}\n`);
+        const url = body.url;
+        const inner = `  \x1b[32m✓\x1b[0m Published! Share your score:`;
+        const urlLine = `  ${url}`;
+        const width = Math.max(inner.length - 9, urlLine.length) + 4; // -9 for ANSI codes
+        const border = "─".repeat(width);
+        console.log(`\n  \x1b[32m┌${border}┐\x1b[0m`);
+        console.log(`  \x1b[32m│\x1b[0m ${inner.padEnd(width - 2)} \x1b[32m│\x1b[0m`);
+        console.log(`  \x1b[32m│\x1b[0m ${urlLine.padEnd(width - 2)} \x1b[32m│\x1b[0m`);
+        console.log(`  \x1b[32m└${border}┘\x1b[0m\n`);
       } else if (res.status === 403) {
         console.error(
           "\n  \x1b[31m✗ This handle is owned by a different machine.\x1b[0m"

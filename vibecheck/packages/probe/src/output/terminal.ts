@@ -8,6 +8,7 @@ import type {
 } from "../types.js";
 import { CATEGORY_EMOJI, CATEGORY_LABELS, TAXONOMY_CATEGORIES } from "../types.js";
 import { getNextTier } from "../scoring/tiers.js";
+import { generateNarrative } from "./narrative.js";
 
 function scoreColor(score: number): (text: string) => string {
   if (score >= 50) return chalk.green;
@@ -45,26 +46,24 @@ export function renderResults(
   console.log(`  ${chalk.dim(score.tier.tagline)}`);
   console.log();
 
-  // Category table
-  console.log(chalk.bold("  Categories"));
-  console.log(chalk.dim("  " + "-".repeat(52)));
+  // Narrative summary
+  const narrative = generateNarrative(score, detections);
+  console.log(`  ${chalk.italic(narrative)}`);
+  console.log();
 
+  // Category bar chart
   const catMap = new Map<TaxonomyCategory, CategoryScore>(
     score.categories.map((c) => [c.category, c])
   );
 
   for (const cat of TAXONOMY_CATEGORIES) {
     const cs = catMap.get(cat)!;
-    const emoji = CATEGORY_EMOJI[cat];
-    const label = CATEGORY_LABELS[cat].padEnd(14);
-    const scoreStr = scoreColor(cs.score)(
-      String(cs.score).padStart(3)
-    );
-    const countStr = chalk.dim(`${cs.detectionCount} found`);
-    const topStr = cs.detectionCount > 0 ? tierBadge(cs.topTier) : chalk.dim("--");
-    console.log(
-      `  ${emoji} ${label} ${scoreStr}/100  ${countStr}  ${topStr}`
-    );
+    const label = CATEGORY_LABELS[cat].padEnd(12);
+    const filled = Math.round(cs.score / 10);
+    const empty = 10 - filled;
+    const bar = scoreColor(cs.score)("█".repeat(filled)) + chalk.dim("░".repeat(empty));
+    const scoreStr = scoreColor(cs.score)(String(cs.score).padStart(3));
+    console.log(`  ${label}  ${bar}  ${scoreStr}`);
   }
   console.log();
 

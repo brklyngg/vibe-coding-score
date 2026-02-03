@@ -2,7 +2,7 @@ import { readdir } from "node:fs/promises";
 import type { ScanResult } from "../types.js";
 import type { Scanner } from "./index.js";
 import { classify, type RawFinding } from "../taxonomy/classifier.js";
-import { fileExists, readJsonIfExists, readFileIfExists } from "./utils.js";
+import { fileExists, readJsonIfExists, readFileIfExists, shellOutput } from "./utils.js";
 
 interface PackageJson {
   scripts?: Record<string, string>;
@@ -18,15 +18,20 @@ export class DeployScanner implements Scanner {
 
     // Deploy platform configs
     const deployConfigs = [
+      { file: ".vercel/project.json", id: "vercel" },
       { file: "vercel.json", id: "vercel" },
       { file: "netlify.toml", id: "netlify" },
       { file: "fly.toml", id: "fly" },
       { file: "railway.json", id: "railway" },
       { file: "render.yaml", id: "render" },
+      { file: "wrangler.toml", id: "cloudflare-workers" },
     ] as const;
 
+    const seenDeploy = new Set<string>();
     for (const { file, id } of deployConfigs) {
+      if (seenDeploy.has(id)) continue;
       if (await fileExists(file)) {
+        seenDeploy.add(id);
         findings.push({
           id,
           source: file,
@@ -81,6 +86,27 @@ export class DeployScanner implements Scanner {
       }
     } catch {
       // no workflows
+    }
+
+    // CLI-based deploy tools
+    const cliChecks = [
+      { cmd: "which vercel", id: "vercel" },
+      { cmd: "which netlify", id: "netlify" },
+      { cmd: "which wrangler", id: "cloudflare-workers" },
+    ] as const;
+
+    const cliResults = await Promise.all(
+      cliChecks.map(({ cmd }) => shellOutput(cmd))
+    );
+    for (let i = 0; i < cliChecks.length; i++) {
+      if (cliResults[i] && !seenDeploy.has(cliChecks[i].id)) {
+        seenDeploy.add(cliChecks[i].id);
+        findings.push({
+          id: cliChecks[i].id,
+          source: cliChecks[i].cmd,
+          confidence: "medium",
+        });
+      }
     }
 
     // Package.json deploy/release scripts

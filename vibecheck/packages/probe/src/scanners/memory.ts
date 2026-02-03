@@ -116,6 +116,24 @@ export class MemoryScanner implements Scanner {
       });
     }
 
+    // .windsurfrules
+    if (await fileExists(".windsurfrules")) {
+      findings.push({
+        id: "windsurfrules",
+        source: ".windsurfrules",
+        confidence: "high",
+      });
+    }
+
+    // Copilot instructions
+    if (await fileExists(".github/copilot-instructions.md")) {
+      findings.push({
+        id: "copilot-instructions",
+        source: ".github/copilot-instructions.md",
+        confidence: "high",
+      });
+    }
+
     return {
       scanner: this.name,
       detections: classify(findings),

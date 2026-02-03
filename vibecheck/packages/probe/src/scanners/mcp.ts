@@ -1,10 +1,11 @@
 import type { ScanResult } from "../types.js";
 import type { Scanner } from "./index.js";
 import { classify, type RawFinding } from "../taxonomy/classifier.js";
-import { readJsonIfExists, shellOutput } from "./utils.js";
+import { readJsonIfExists, shellOutput, fileExists } from "./utils.js";
 
 interface ClaudeSettings {
   mcpServers?: Record<string, unknown>;
+  projects?: Record<string, { mcpServers?: Record<string, unknown> }>;
   [key: string]: unknown;
 }
 
@@ -34,10 +35,12 @@ export class McpScanner implements Scanner {
     const findings: RawFinding[] = [];
     const seen = new Set<string>();
 
-    // Read Claude settings files
+    // Read Claude settings files (Code + Desktop)
     const settingsPaths = [
       "~/.claude/settings.json",
       "~/.claude/settings.local.json",
+      "~/Library/Application Support/Claude/claude_desktop_config.json",
+      "~/.config/Claude/claude_desktop_config.json",
     ];
 
     for (const path of settingsPaths) {
@@ -65,6 +68,27 @@ export class McpScanner implements Scanner {
               confidence: "high",
               details: { type: "custom" },
             });
+          }
+        }
+      }
+
+      // Project-scoped MCP servers
+      if (settings.projects) {
+        for (const proj of Object.values(settings.projects)) {
+          if (!proj.mcpServers) continue;
+          for (const key of Object.keys(proj.mcpServers)) {
+            const normalized = key.toLowerCase();
+            const knownId = KNOWN_MCP[normalized];
+            const id = knownId ?? `mcp-${normalized}`;
+            if (!seen.has(id)) {
+              seen.add(id);
+              findings.push({
+                id,
+                source: `${path} (project)`,
+                confidence: "high",
+                details: knownId ? undefined : { type: "custom" },
+              });
+            }
           }
         }
       }
@@ -116,6 +140,16 @@ export class McpScanner implements Scanner {
           confidence: "high",
         });
       }
+    }
+
+    // Cursor directory fallback
+    if (!seen.has("cursor") && await fileExists("~/.cursor/")) {
+      seen.add("cursor");
+      findings.push({
+        id: "cursor",
+        source: "~/.cursor/",
+        confidence: "medium",
+      });
     }
 
     return {
