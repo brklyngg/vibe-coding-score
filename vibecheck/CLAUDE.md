@@ -2,13 +2,13 @@
 
 ## What This Is
 
-Two-package monorepo: `vibecheck-probe` (npm CLI that scans your AI coding setup) + `vibecheck.dev` (Next.js 15 web app that displays scores, generates shareable cards).
+Two-package monorepo: `vibecheck-score` (npm CLI that scans your AI coding setup) + `vibecheck.dev` (Next.js 15 web app that displays scores, generates shareable cards).
 
 ## Monorepo Structure
 
 ```
 vibecheck/
-├── packages/probe/     # npm: vibecheck-probe (TypeScript CLI)
+├── packages/probe/     # npm: vibecheck-score (TypeScript CLI)
 │   └── src/
 │       ├── index.ts               # CLI entry point (--help, --json, --deep, --merge, --submit)
 │       ├── types.ts               # ProbeResult, Detection (with optional points/scanScope), ScoreResult

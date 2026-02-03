@@ -209,7 +209,7 @@ export default async function ResultPage({ params }: PageProps) {
         <p className="mt-4 text-xs text-white/30">
           Get your own score:{" "}
           <code className="text-indigo-300">
-            npx vibecheck-probe --submit --handle yourname
+            npx vibecheck-score --submit --handle yourname
           </code>
         </p>
       </footer>

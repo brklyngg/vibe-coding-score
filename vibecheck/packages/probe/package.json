@@ -1,10 +1,10 @@
 {
-  "name": "vibecheck-probe",
+  "name": "vibecheck-score",
   "version": "0.1.0",
   "description": "Deep scan your AI coding setup — models, agents, MCP servers, memory, security, deploy pipeline",
   "type": "module",
   "bin": {
-    "vibecheck-probe": "./dist/index.js"
+    "vibecheck": "dist/index.js"
   },
   "files": [
     "dist",
@@ -20,7 +20,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/garygurevich/vibecheck"
+    "url": "git+https://github.com/garygurevich/vibecheck.git"
   },
   "homepage": "https://vibecheck.dev",
   "keywords": [

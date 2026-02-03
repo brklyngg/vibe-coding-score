@@ -36,10 +36,10 @@ const HANDLE_RE = /^[a-z0-9_-]{3,39}$/;
 
 function printHelp(): void {
   console.log(`
-  vibecheck-probe — scan your AI coding setup
+  vibecheck — scan your AI coding setup
 
   Usage:
-    vibecheck-probe [options]
+    vibecheck [options]
 
   Options:
     --help           Show this help message

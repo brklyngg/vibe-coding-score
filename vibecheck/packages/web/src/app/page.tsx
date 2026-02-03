@@ -14,7 +14,7 @@ export default function Home() {
         </p>
         <div className="mb-4 rounded-lg border border-white/10 bg-white/5 p-4 font-mono text-sm">
           <span className="text-white/40">$</span>{" "}
-          <span className="text-indigo-300">npx vibecheck-probe</span>
+          <span className="text-indigo-300">npx vibecheck-score</span>
         </div>
         <p className="mb-10 text-sm text-white/40">
           Scans locally. Shows you the results. You decide what to share.
