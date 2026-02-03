@@ -41,12 +41,13 @@ function printHelp(): void {
     vibecheck-probe [options]
 
   Options:
-    --help         Show this help message
-    --json         Output raw ProbeResult as JSON
-    --submit       Submit results to vibecheck.dev
-    --handle <id>  Your handle (3-39 chars, lowercase, hyphens, underscores)
-    --url <url>    Override submit URL (default: https://vibecheck.dev)
-    --yes          Skip submit confirmation prompt
+    --help           Show this help message
+    --json           Output raw ProbeResult as JSON
+    --merge <file>   Merge detections from another scan (JSON file)
+    --submit         Submit results to vibecheck.dev
+    --handle <id>    Your handle (3-39 chars, lowercase, hyphens, underscores)
+    --url <url>      Override submit URL (default: https://vibecheck.dev)
+    --yes            Skip submit confirmation prompt
 `);
 }
 
@@ -55,6 +56,7 @@ async function main(): Promise<void> {
     options: {
       help: { type: "boolean", default: false },
       json: { type: "boolean", default: false },
+      merge: { type: "string" },
       submit: { type: "boolean", default: false },
       handle: { type: "string" },
       url: { type: "string" },
@@ -101,6 +103,22 @@ async function main(): Promise<void> {
     }
   }
 
+  // --merge: fold in detections from an external scan
+  if (values.merge) {
+    try {
+      const external = JSON.parse(readFileSync(values.merge, "utf-8")) as ProbeResult;
+      for (const d of external.detections) {
+        if (!seen.has(d.id)) {
+          seen.add(d.id);
+          detections.push(d);
+        }
+      }
+    } catch (err) {
+      console.error(`\x1b[31m  Failed to read --merge file: ${values.merge}\x1b[0m`);
+      process.exit(1);
+    }
+  }
+
   const score = computeScore(detections);
   const version = getVersion();
 
@@ -117,6 +135,13 @@ async function main(): Promise<void> {
     console.log(JSON.stringify(result, null, 2));
   } else {
     renderResults(score, detections);
+
+    // Hint about --merge when autonomy is empty and no merge was used
+    const autonomyScore = score.categories.find((c) => c.category === "autonomy");
+    if (autonomyScore?.score === 0 && !values.merge) {
+      console.log("  \x1b[2m💡 Run agents on a separate machine? Export with --json there,");
+      console.log("  then pass it here with --merge <file> to combine scores.\x1b[0m\n");
+    }
   }
 
   // --submit flow

@@ -16,6 +16,52 @@ interface PackageJson {
   [key: string]: unknown;
 }
 
+const SKIP_DIRS = new Set(["node_modules", ".git", "dist", "build", ".next", ".turbo"]);
+
+const CODE_QUALITY_CONFIGS = [
+  { globs: ["eslint.config.js", "eslint.config.mjs", "eslint.config.cjs", "eslint.config.ts", ".eslintrc", ".eslintrc.js", ".eslintrc.json", ".eslintrc.yml"], id: "eslint" },
+  { globs: ["prettier.config.js", "prettier.config.mjs", "prettier.config.cjs", ".prettierrc", ".prettierrc.js", ".prettierrc.json", ".prettierrc.yml"], id: "prettier" },
+  { globs: ["biome.json", "biome.jsonc"], id: "biome" },
+] as const;
+
+const TEST_CONFIGS = [
+  { glob: "vitest.config", id: "vitest" },
+  { glob: "jest.config", id: "jest" },
+  { glob: "pytest.ini", id: "pytest" },
+] as const;
+
+const E2E_CONFIGS = [
+  { glob: "playwright.config", id: "playwright" },
+  { glob: "cypress.config", id: "cypress" },
+] as const;
+
+const MONOREPO_TOOLS = [
+  { file: "turbo.json", id: "turbo" },
+  { file: "nx.json", id: "nx" },
+  { file: "pnpm-workspace.yaml", id: "pnpm-workspace" },
+  { file: "lerna.json", id: "lerna" },
+] as const;
+
+async function findSubProjects(): Promise<string[]> {
+  const dirs: string[] = [];
+  try {
+    const level1 = await readdir(".", { withFileTypes: true });
+    for (const d of level1) {
+      if (!d.isDirectory() || SKIP_DIRS.has(d.name)) continue;
+      if (await fileExists(`${d.name}/package.json`)) dirs.push(d.name);
+      try {
+        const level2 = await readdir(d.name, { withFileTypes: true });
+        for (const d2 of level2) {
+          if (!d2.isDirectory() || SKIP_DIRS.has(d2.name)) continue;
+          const path = `${d.name}/${d2.name}`;
+          if (await fileExists(`${path}/package.json`)) dirs.push(path);
+        }
+      } catch { /* not readable */ }
+    }
+  } catch { /* cwd not readable */ }
+  return dirs;
+}
+
 export class RepositoriesScanner implements Scanner {
   name = "repositories";
 
@@ -42,13 +88,7 @@ export class RepositoriesScanner implements Scanner {
     }
 
     // Test framework configs
-    const testConfigs = [
-      { glob: "vitest.config", id: "vitest" },
-      { glob: "jest.config", id: "jest" },
-      { glob: "pytest.ini", id: "pytest" },
-    ] as const;
-
-    for (const { glob, id } of testConfigs) {
+    for (const { glob, id } of TEST_CONFIGS) {
       const extensions = ["", ".ts", ".js", ".mjs", ".cjs"];
       for (const ext of extensions) {
         if (await fileExists(`${glob}${ext}`)) {
@@ -59,12 +99,7 @@ export class RepositoriesScanner implements Scanner {
     }
 
     // E2E test framework configs
-    const e2eConfigs = [
-      { glob: "playwright.config", id: "playwright" },
-      { glob: "cypress.config", id: "cypress" },
-    ] as const;
-
-    for (const { glob, id } of e2eConfigs) {
+    for (const { glob, id } of E2E_CONFIGS) {
       const extensions = ["", ".ts", ".js", ".mjs", ".cjs"];
       for (const ext of extensions) {
         if (await fileExists(`${glob}${ext}`)) {
@@ -75,13 +110,7 @@ export class RepositoriesScanner implements Scanner {
     }
 
     // Code quality configs
-    const codeQualityConfigs = [
-      { globs: ["eslint.config.js", "eslint.config.mjs", "eslint.config.cjs", "eslint.config.ts", ".eslintrc", ".eslintrc.js", ".eslintrc.json", ".eslintrc.yml"], id: "eslint" },
-      { globs: ["prettier.config.js", "prettier.config.mjs", "prettier.config.cjs", ".prettierrc", ".prettierrc.js", ".prettierrc.json", ".prettierrc.yml"], id: "prettier" },
-      { globs: ["biome.json", "biome.jsonc"], id: "biome" },
-    ] as const;
-
-    for (const { globs, id } of codeQualityConfigs) {
+    for (const { globs, id } of CODE_QUALITY_CONFIGS) {
       for (const file of globs) {
         if (await fileExists(file)) {
           findings.push({ id, source: file, confidence: "high" });
@@ -257,6 +286,64 @@ export class RepositoriesScanner implements Scanner {
           });
         }
         break;
+      }
+    }
+
+    // Monorepo orchestration tools
+    for (const { file, id } of MONOREPO_TOOLS) {
+      if (await fileExists(file)) {
+        findings.push({ id, source: file, confidence: "high" });
+      }
+    }
+
+    // Sub-project scanning: walk 2 levels deep for package.json dirs
+    const seenIds = new Set(findings.map((f) => f.id));
+    const subProjects = await findSubProjects();
+
+    for (const dir of subProjects) {
+      // Config-based checks in sub-projects
+      const extensions = ["", ".ts", ".js", ".mjs", ".cjs"];
+
+      for (const { glob, id } of TEST_CONFIGS) {
+        if (seenIds.has(id)) continue;
+        for (const ext of extensions) {
+          if (await fileExists(`${dir}/${glob}${ext}`)) {
+            findings.push({ id, source: `${dir}/${glob}${ext}`, confidence: "high" });
+            seenIds.add(id);
+            break;
+          }
+        }
+      }
+
+      for (const { glob, id } of E2E_CONFIGS) {
+        if (seenIds.has(id)) continue;
+        for (const ext of extensions) {
+          if (await fileExists(`${dir}/${glob}${ext}`)) {
+            findings.push({ id, source: `${dir}/${glob}${ext}`, confidence: "high" });
+            seenIds.add(id);
+            break;
+          }
+        }
+      }
+
+      for (const { globs, id } of CODE_QUALITY_CONFIGS) {
+        if (seenIds.has(id)) continue;
+        for (const file of globs) {
+          if (await fileExists(`${dir}/${file}`)) {
+            findings.push({ id, source: `${dir}/${file}`, confidence: "high" });
+            seenIds.add(id);
+            break;
+          }
+        }
+      }
+
+      // TypeScript strict in sub-project
+      if (!seenIds.has("typescript-strict")) {
+        const subTsconfig = await readJsonIfExists<TsConfig>(`${dir}/tsconfig.json`);
+        if (subTsconfig?.compilerOptions?.strict === true) {
+          findings.push({ id: "typescript-strict", source: `${dir}/tsconfig.json`, confidence: "high" });
+          seenIds.add("typescript-strict");
+        }
       }
     }
 

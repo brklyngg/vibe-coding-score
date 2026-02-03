@@ -91,6 +91,10 @@
   { "id": "automated-docs", "name": "Automated documentation", "category": "ops", "tier": "advanced", "signals": ["typedoc", "jsdoc", "storybook"] },
   { "id": "maintenance-scripts", "name": "Maintenance scripts", "category": "ops", "tier": "intermediate", "signals": ["scripts/", "Makefile"] },
   { "id": "monitoring-config", "name": "Monitoring configuration", "category": "ops", "tier": "intermediate", "signals": ["sentry.config", "datadog"] },
+  { "id": "turbo", "name": "Turborepo", "category": "ops", "tier": "intermediate", "signals": ["turbo.json"] },
+  { "id": "nx", "name": "Nx monorepo", "category": "ops", "tier": "intermediate", "signals": ["nx.json"] },
+  { "id": "pnpm-workspace", "name": "pnpm workspace", "category": "ops", "tier": "basic", "signals": ["pnpm-workspace.yaml"] },
+  { "id": "lerna", "name": "Lerna monorepo", "category": "ops", "tier": "basic", "signals": ["lerna.json"] },
 
   { "id": "github-repos", "name": "Public GitHub repositories", "category": "social", "tier": "intermediate", "signals": ["git remote"] },
   { "id": "npm-public", "name": "Published npm packages", "category": "social", "tier": "advanced", "signals": ["package.json private:false"] },

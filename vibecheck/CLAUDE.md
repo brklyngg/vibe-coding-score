@@ -10,12 +10,12 @@ Two-package monorepo: `vibecheck-probe` (npm CLI that scans your AI coding setup
 vibecheck/
 ├── packages/probe/     # npm: vibecheck-probe (TypeScript CLI)
 │   └── src/
-│       ├── index.ts               # CLI entry point (--help, --json, --submit)
+│       ├── index.ts               # CLI entry point (--help, --json, --merge, --submit)
 │       ├── types.ts               # ProbeResult, Detection, ScoreResult, TaxonomyCategory
 │       ├── scoring/engine.ts      # detections → category scores → level → tier → type code → pioneer
 │       ├── scoring/tiers.ts       # tier lookup helpers
 │       ├── taxonomy/
-│       │   ├── registry.json      # 89-entry lookup table (id, name, category, tier, signals)
+│       │   ├── registry.json      # 93-entry lookup table (id, name, category, tier, signals)
 │       │   └── classifier.ts      # RawFinding → Detection[] via registry lookup
 │       ├── scanners/
 │       │   ├── index.ts           # Scanner interface + runAllScanners (Promise.allSettled)
@@ -24,7 +24,7 @@ vibecheck/
 │       │   ├── mcp.ts             # MCP servers (Code + Desktop + project-scoped), CLI tools
 │       │   ├── agents.ts          # Subagents, hooks, AGENTS.md, SOUL.md, EVOLVE.md, skills, commands
 │       │   ├── orchestration.ts   # tmux, worktrees, orchestrator CLIs, crontab
-│       │   ├── repositories.ts    # CI/CD, test/E2E configs, lint/format, TS strict, npm scripts
+│       │   ├── repositories.ts    # CI/CD, test/E2E configs, lint/format, TS strict, npm scripts, sub-project scanning, monorepo tools
 │       │   ├── memory.ts          # CLAUDE.md, memories, rules, cursorrules, windsurfrules, copilot, logs
 │       │   ├── security.ts        # gitignore, file perms, agent perms, canary tokens
 │       │   ├── deploy.ts          # vercel/netlify/fly/cloudflare/docker configs, deploy CLIs
@@ -57,6 +57,7 @@ npm run build:probe  # TypeScript compile probe + copy registry.json to dist
 # Run the probe CLI locally
 node packages/probe/dist/index.js --help
 node packages/probe/dist/index.js --json         # JSON output (ProbeResult shape)
+node packages/probe/dist/index.js --merge f.json # Merge detections from another scan
 ```
 
 ## Scoring System
@@ -77,7 +78,7 @@ The probe runs 9 scanners in parallel via `Promise.allSettled`. Each scanner emi
 
 Terminal output: tier header → narrative paragraph (2-3 sentences from dimension commentary) → aligned bar chart → detection list → pioneer badge → growth areas → next tier hint.
 
-Registry is a flat JSON array (89 entries) — editable without recompilation. Only file content read is `tsconfig.json` (one boolean check for strict mode); all other detections are existence-based or key-name pattern matching. No network calls (privacy-first); social scanner is local-only for v1.
+Registry is a flat JSON array (93 entries) — editable without recompilation. The repositories scanner walks sub-projects up to 2 levels deep (any dir with `package.json`, skipping `node_modules`/`.git`/`dist`/`build`/`.next`/`.turbo`) to find configs that only exist in sub-packages. It also detects monorepo orchestration tools (turbo, nx, pnpm-workspace, lerna). The `--merge` flag lets you combine detections from scans run on different machines (e.g., agent machines for autonomy scoring). No network calls (privacy-first); social scanner is local-only for v1.
 
 Narrative commentary is duplicated in `packages/probe/src/output/narrative.ts` and `packages/web/src/lib/narrative-templates.ts` — extract to `@vibecheck/core` when a third consumer appears.
 
