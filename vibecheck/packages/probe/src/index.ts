@@ -18,6 +18,7 @@ import { MemoryScanner } from "./scanners/memory.js";
 import { SecurityScanner } from "./scanners/security.js";
 import { DeployScanner } from "./scanners/deploy.js";
 import { SocialScanner } from "./scanners/social.js";
+import { GitHistoryScanner } from "./scanners/git-history.js";
 import { UniversalFileScanner, getSupersededIds } from "./scanners/universal-file.js";
 import { renderResults, createSpinner } from "./output/terminal.js";
 
@@ -87,6 +88,7 @@ async function main(): Promise<void> {
     new SecurityScanner(),
     new DeployScanner(),
     new SocialScanner(),
+    new GitHistoryScanner(),
     new UniversalFileScanner(isDeep), // must be last — supersedes v2 for shared artifacts
   ];
 

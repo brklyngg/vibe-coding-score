@@ -22,6 +22,7 @@ vibecheck/
 │       │   ├── utils.ts           # fileExists, readFileIfExists, readJsonIfExists, shellOutput
 │       │   ├── workspace.ts       # Monorepo detection + workspace discovery (2-level walk, cap 20)
 │       │   ├── universal-file.ts  # Config-driven UFS: ~50 checks, 6 check types, multi-category emissions, supersedes v2
+│       │   ├── git-history.ts     # Git log analysis: commit style, velocity, branches, test/doc ratios, time patterns
 │       │   ├── environment.ts     # API keys (.env + shell config), model routing, local models
 │       │   ├── mcp.ts             # MCP servers (Code + Desktop + project-scoped), CLI tools
 │       │   ├── agents.ts          # Subagents, hooks, AGENTS.md, SOUL.md, EVOLVE.md, skills, commands
@@ -78,7 +79,7 @@ Observer (0-10) → Apprentice (11-20) → Practitioner (21-30) → Builder (31-
 
 ## Scanner Pipeline
 
-The probe runs 10 scanners in parallel via `Promise.allSettled` (9 v2 scanners + UniversalFileScanner last). Each v2 scanner emits `RawFinding[]`, passes them through `classify()` which maps IDs to the registry for category/tier/name, and returns `ScanResult`. The UFS builds `Detection[]` directly with exact spec points — no classify() pass needed.
+The probe runs 11 scanners in parallel via `Promise.allSettled` (9 v2 scanners + GitHistoryScanner + UniversalFileScanner last). Each v2 scanner emits `RawFinding[]`, passes them through `classify()` which maps IDs to the registry for category/tier/name, and returns `ScanResult`. The UFS builds `Detection[]` directly with exact spec points — no classify() pass needed.
 
 After all scanners complete, artifact-level dedup suppresses v2 detections when UFS covers the same artifact (e.g., UFS `ufs:claude-md:rich` supersedes v2 `claude-md`). The `supersedes` field on UFS config entries declares which v2 IDs to drop. Remaining detections are deduped by ID and fed into `computeScore()`.
 
