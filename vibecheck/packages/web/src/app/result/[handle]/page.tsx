@@ -23,21 +23,24 @@ import {
 import { PioneerCard } from "@/components/PioneerCard";
 import { CopyUrlButton } from "@/components/CopyUrlButton";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+let _supabase: ReturnType<typeof createClient> | null = null;
+function getSupabase() {
+  return (_supabase ??= createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  ));
+}
 
 interface PageProps {
   params: Promise<{ handle: string }>;
 }
 
 async function getResult(handle: string): Promise<ProbeResult | null> {
-  const { data } = await supabase
+  const { data } = await getSupabase()
     .from("results")
     .select("probe_result")
     .eq("handle", handle)
-    .single();
+    .single<{ probe_result: ProbeResult }>();
   return data?.probe_result ?? null;
 }
 

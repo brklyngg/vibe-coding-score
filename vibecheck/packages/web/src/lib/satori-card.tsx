@@ -54,6 +54,7 @@ export function ScoreCard({ score, handle }: CardProps) {
       >
         <span
           style={{
+            display: "flex",
             fontSize: "11px",
             fontWeight: 600,
             letterSpacing: "3px",
@@ -90,6 +91,7 @@ export function ScoreCard({ score, handle }: CardProps) {
           {/* Tier title */}
           <div
             style={{
+              display: "flex",
               fontSize: "36px",
               fontWeight: 800,
               lineHeight: 1.1,
@@ -122,6 +124,7 @@ export function ScoreCard({ score, handle }: CardProps) {
             </span>
             <span
               style={{
+                display: "flex",
                 fontSize: "14px",
                 color: "rgba(255,255,255,0.4)",
               }}
@@ -130,6 +133,7 @@ export function ScoreCard({ score, handle }: CardProps) {
             </span>
             <span
               style={{
+                display: "flex",
                 fontSize: "16px",
                 fontWeight: 700,
                 fontFamily: "monospace",
@@ -143,6 +147,7 @@ export function ScoreCard({ score, handle }: CardProps) {
           {/* Archetype name */}
           <div
             style={{
+              display: "flex",
               fontSize: "13px",
               color: "rgba(255,255,255,0.5)",
               marginTop: "2px",
@@ -154,6 +159,7 @@ export function ScoreCard({ score, handle }: CardProps) {
           {/* Tagline */}
           <div
             style={{
+              display: "flex",
               fontSize: "14px",
               fontStyle: "italic",
               color: "rgba(255,255,255,0.5)",
@@ -197,7 +203,6 @@ export function ScoreCard({ score, handle }: CardProps) {
             src={radarDataUri(scoreMap, 200, isPioneer)}
             width={200}
             height={200}
-            style={{ display: "flex" }}
           />
         </div>
       </div>
@@ -222,8 +227,8 @@ export function ScoreCard({ score, handle }: CardProps) {
               color: "rgba(255,255,255,0.5)",
             }}
           >
-            <span>{CATEGORY_EMOJI[cat.category]}</span>
-            <span style={{ fontWeight: 600, color: "rgba(255,255,255,0.7)" }}>
+            <span style={{ display: "flex" }}>{CATEGORY_EMOJI[cat.category]}</span>
+            <span style={{ display: "flex", fontWeight: 600, color: "rgba(255,255,255,0.7)" }}>
               {cat.score}
             </span>
           </div>
@@ -241,6 +246,7 @@ export function ScoreCard({ score, handle }: CardProps) {
       >
         <span
           style={{
+            display: "flex",
             fontSize: "12px",
             color: "rgba(255,255,255,0.3)",
           }}
@@ -249,6 +255,7 @@ export function ScoreCard({ score, handle }: CardProps) {
         </span>
         <span
           style={{
+            display: "flex",
             fontSize: "10px",
             color: "rgba(255,255,255,0.2)",
           }}
