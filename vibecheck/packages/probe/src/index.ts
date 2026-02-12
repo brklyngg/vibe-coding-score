@@ -47,9 +47,9 @@ function printHelp(): void {
     --json           Output raw ProbeResult as JSON
     --merge <file>   Merge detections from another scan (JSON file)
     --deep           Scan home directory for global AI config (crontab, launchd)
-    --submit         Submit results to vibecheck.dev
+    --submit         Submit results to vibecheck-brklyngg.vercel.app
     --handle <id>    Your handle (3-39 chars, lowercase, hyphens, underscores)
-    --url <url>      Override submit URL (default: https://vibecheck.dev)
+    --url <url>      Override submit URL (default: https://vibecheck-brklyngg.vercel.app)
     --yes            Skip submit confirmation prompt
 `);
 }
@@ -194,7 +194,7 @@ async function main(): Promise<void> {
         m.createInterface({ input: process.stdin, output: process.stdout })
       );
       const answer = await rl.question(
-        `\n  Submit results as \x1b[1m${handle}\x1b[0m to vibecheck.dev? [Y/n] `
+        `\n  Submit results as \x1b[1m${handle}\x1b[0m to vibecheck-brklyngg.vercel.app? [Y/n] `
       );
       rl.close();
       if (answer.trim().toLowerCase() === "n") {
@@ -203,7 +203,7 @@ async function main(): Promise<void> {
       }
     }
 
-    const submitUrl = values.url ?? "https://vibecheck.dev";
+    const submitUrl = values.url ?? "https://vibecheck-brklyngg.vercel.app";
     try {
       const res = await fetch(`${submitUrl}/api/submit`, {
         method: "POST",

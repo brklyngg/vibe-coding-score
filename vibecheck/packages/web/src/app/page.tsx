@@ -12,12 +12,23 @@ export default function Home() {
           A 15-second scan of your tools, configs, and workflow.
           You see everything before anything is shared.
         </p>
-        <div className="mb-4 rounded-lg border border-white/10 bg-white/5 p-4 font-mono text-sm">
+        <div className="mb-2 rounded-lg border border-white/10 bg-white/5 p-4 font-mono text-sm">
           <span className="text-white/40">$</span>{" "}
-          <span className="text-indigo-300">npx vibecheck-score</span>
+          <span className="text-indigo-300">npx vibecheck-score --deep</span>
         </div>
-        <p className="mb-10 text-sm text-white/40">
-          Scans locally. Shows you the results. You decide what to share.
+        <p className="mb-4 text-xs text-white/40">
+          <code className="text-white/50">--deep</code> scans your full machine.
+          Without it you get a quick project-only scan.
+        </p>
+        <div className="mb-2 rounded-lg border border-white/10 bg-white/5 p-4 font-mono text-xs leading-relaxed">
+          <span className="text-white/40">$</span>{" "}
+          <span className="text-indigo-300">
+            npx vibecheck-score --deep --submit --handle yourname --url https://vibecheck-brklyngg.vercel.app
+          </span>
+        </div>
+        <p className="mb-10 text-xs text-white/40">
+          <code className="text-white/50">--submit</code> shares your result.
+          You see everything before anything is sent.
         </p>
 
         <div className="mb-10">

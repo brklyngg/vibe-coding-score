@@ -90,8 +90,11 @@ export async function POST(request: Request) {
     }
   }
 
+  const host = request.headers.get("host") ?? "vibecheck-brklyngg.vercel.app";
+  const proto = host.includes("localhost") ? "http" : "https";
+
   return NextResponse.json({
     success: true,
-    url: `https://vibecheck.dev/result/${handle}`,
+    url: `${proto}://${host}/result/${handle}`,
   });
 }

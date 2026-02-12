@@ -251,7 +251,7 @@ export function ScoreCard({ score, handle }: CardProps) {
             color: "rgba(255,255,255,0.3)",
           }}
         >
-          {`vibecheck.dev/@${handle}`}
+          {`vibecheck-brklyngg.vercel.app/@${handle}`}
         </span>
         <span
           style={{
@@ -260,7 +260,7 @@ export function ScoreCard({ score, handle }: CardProps) {
             color: "rgba(255,255,255,0.2)",
           }}
         >
-          vibecheck.dev
+          vibecheck-brklyngg.vercel.app
         </span>
       </div>
     </div>
