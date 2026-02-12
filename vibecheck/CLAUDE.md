@@ -95,6 +95,3 @@ Narrative commentary is duplicated in `packages/probe/src/output/narrative.ts` a
 
 Source specs live in `../Context/`: PRD v2.4, Taxonomy v1.3, Audio transcript. These define the full scoring rubric, taxonomy entries, and tone.
 
-## Known Issue
-
-OG image route (`/api/og/[handle]`) fails at runtime with Satori error: "Expected <div> to have explicit display: flex or display: none if it has more than one child node." The SVG radar chart and some card divs need Satori-compatible layout fixes.
