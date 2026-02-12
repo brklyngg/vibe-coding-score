@@ -19,7 +19,7 @@ import { SecurityScanner } from "./scanners/security.js";
 import { DeployScanner } from "./scanners/deploy.js";
 import { SocialScanner } from "./scanners/social.js";
 import { GitHistoryScanner } from "./scanners/git-history.js";
-import { UniversalFileScanner, getSupersededIds } from "./scanners/universal-file.js";
+import { UniversalFileScanner, getSupersededMap } from "./scanners/universal-file.js";
 import { renderResults, createSpinner } from "./output/terminal.js";
 
 function getVersion(): string {
@@ -101,16 +101,16 @@ async function main(): Promise<void> {
 
   // Flatten and deduplicate detections by id
   // UFS runs last — collect its detections to know which v2 IDs to suppress
-  const supersededV2Ids = getSupersededIds();
+  const supersededMap = getSupersededMap(); // v2Id → [ufs IDs that replace it]
   const ufsResult = scanResults.find((r) => r.scanner === "universal-file");
   const ufsDetectionIds = new Set(ufsResult?.detections.map((d) => d.id) ?? []);
 
-  // Build set of v2 IDs that UFS actually covered (supersedes + UFS emitted something)
+  // Only suppress a v2 ID when at least one of its replacement UFS IDs was actually emitted
   const suppressedV2Ids = new Set<string>();
-  for (const v2Id of supersededV2Ids) {
-    // Check if any UFS detection declares it supersedes this v2 ID
-    const hasUfsReplacement = ufsResult?.detections.some((d) => d.id.startsWith("ufs:"));
-    if (hasUfsReplacement) suppressedV2Ids.add(v2Id);
+  for (const [v2Id, ufsIds] of supersededMap) {
+    if (ufsIds.some((id) => ufsDetectionIds.has(id))) {
+      suppressedV2Ids.add(v2Id);
+    }
   }
 
   const seen = new Set<string>();

@@ -635,12 +635,17 @@ async function runCheck(entry: ConfigEntry, basePath: string): Promise<boolean> 
 // ---------------------------------------------------------------------------
 // Exported supersedes map: v2 ID → UFS IDs that replace it
 // ---------------------------------------------------------------------------
-export function getSupersededIds(): Set<string> {
-  const ids = new Set<string>();
+/** Map each v2 detection ID to the UFS detection IDs that can replace it. */
+export function getSupersededMap(): Map<string, string[]> {
+  const map = new Map<string, string[]>();
   for (const entry of CHECKS) {
-    if (entry.supersedes) {
-      ids.add(entry.supersedes);
-    }
+    if (!entry.supersedes) continue;
+    const ids = isMulti(entry)
+      ? entry.emissions.map(e => e.id)
+      : [entry.id];
+    const existing = map.get(entry.supersedes) ?? [];
+    existing.push(...ids);
+    map.set(entry.supersedes, existing);
   }
-  return ids;
+  return map;
 }
