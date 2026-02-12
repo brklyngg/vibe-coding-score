@@ -5,9 +5,11 @@ import { MOCK_SCORE } from "@/lib/mock-data";
 
 export const dynamic = "force-dynamic";
 
-let _supabase: ReturnType<typeof createClient> | null = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let _supabase: ReturnType<typeof createClient<any>> | null = null;
 function getSupabase() {
-  return (_supabase ??= createClient(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (_supabase ??= createClient<any>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   ));
@@ -20,12 +22,11 @@ export async function GET(
   const { handle } = await params;
 
   // Look up real score from Supabase, fall back to mock for "demo"
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data } = await getSupabase()
     .from("results")
     .select("probe_result")
     .eq("handle", handle)
-    .single<{ probe_result: { score: any } }>();
+    .single();
 
   const score = data?.probe_result?.score ?? (handle === "demo" ? MOCK_SCORE : null);
   if (!score) {

@@ -1,10 +1,15 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let _supabase: ReturnType<typeof createClient<any>> | null = null;
+function getSupabase() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (_supabase ??= createClient<any>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  ));
+}
 
 const HANDLE_RE = /^[a-z0-9_-]{3,39}$/;
 
@@ -49,7 +54,7 @@ export async function POST(request: Request) {
   }
 
   // Ownership check
-  const { data: existing } = await supabase
+  const { data: existing } = await getSupabase()
     .from("results")
     .select("submission_token")
     .eq("handle", handle)
@@ -64,7 +69,7 @@ export async function POST(request: Request) {
 
   if (existing) {
     // Upsert: update existing row
-    const { error } = await supabase
+    const { error } = await getSupabase()
       .from("results")
       .update({ probe_result: probeResult, updated_at: new Date().toISOString() })
       .eq("handle", handle);
@@ -74,7 +79,7 @@ export async function POST(request: Request) {
     }
   } else {
     // Insert new row
-    const { error } = await supabase.from("results").insert({
+    const { error } = await getSupabase().from("results").insert({
       handle,
       probe_result: probeResult,
       submission_token: submissionToken,

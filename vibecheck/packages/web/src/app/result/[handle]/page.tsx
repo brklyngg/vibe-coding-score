@@ -23,9 +23,11 @@ import {
 import { PioneerCard } from "@/components/PioneerCard";
 import { CopyUrlButton } from "@/components/CopyUrlButton";
 
-let _supabase: ReturnType<typeof createClient> | null = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let _supabase: ReturnType<typeof createClient<any>> | null = null;
 function getSupabase() {
-  return (_supabase ??= createClient(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (_supabase ??= createClient<any>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   ));
@@ -40,7 +42,7 @@ async function getResult(handle: string): Promise<ProbeResult | null> {
     .from("results")
     .select("probe_result")
     .eq("handle", handle)
-    .single<{ probe_result: ProbeResult }>();
+    .single();
   return data?.probe_result ?? null;
 }
 
