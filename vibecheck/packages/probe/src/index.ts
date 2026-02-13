@@ -5,7 +5,7 @@ import { platform, homedir } from "node:os";
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { randomUUID } from "node:crypto";
+import { randomUUID, randomBytes } from "node:crypto";
 import type { Detection, ProbeResult } from "./types.js";
 import { computeScore } from "./scoring/engine.js";
 import { runAllScanners } from "./scanners/index.js";
@@ -20,6 +20,7 @@ import { DeployScanner } from "./scanners/deploy.js";
 import { SocialScanner } from "./scanners/social.js";
 import { GitHistoryScanner } from "./scanners/git-history.js";
 import { UniversalFileScanner, getSupersededMap } from "./scanners/universal-file.js";
+import chalk from "chalk";
 import { renderResults, createSpinner } from "./output/terminal.js";
 
 function getVersion(): string {
@@ -43,14 +44,16 @@ function printHelp(): void {
     vibecheck [options]
 
   Options:
-    --help           Show this help message
-    --json           Output raw ProbeResult as JSON
-    --merge <file>   Merge detections from another scan (JSON file)
-    --deep           Scan home directory for global AI config (crontab, launchd)
-    --submit         Submit results to vibecheck-brklyngg.vercel.app
-    --handle <id>    Your handle (3-39 chars, lowercase, hyphens, underscores)
-    --url <url>      Override submit URL (default: https://vibecheck-brklyngg.vercel.app)
-    --yes            Skip submit confirmation prompt
+    --help              Show this help message
+    --json              Output raw ProbeResult as JSON
+    --merge <file>      Merge detections from another scan (JSON file)
+    --deep              Scan home directory for global AI config (crontab, launchd)
+    --submit            Submit results to vibecheck-brklyngg.vercel.app
+    --handle <id>       Your handle (auto-generated if omitted)
+    --compare create    Create a new comparison
+    --compare <code>    Join an existing comparison
+    --url <url>         Override submit URL (default: https://vibecheck-brklyngg.vercel.app)
+    --yes               Skip submit confirmation prompt
 `);
 }
 
@@ -63,6 +66,7 @@ async function main(): Promise<void> {
       merge: { type: "string" },
       submit: { type: "boolean", default: false },
       handle: { type: "string" },
+      compare: { type: "string" },
       url: { type: "string" },
       yes: { type: "boolean", default: false },
     },
@@ -95,7 +99,9 @@ async function main(): Promise<void> {
   const spinner = isJson ? null : createSpinner("Scanning your AI setup...");
   spinner?.start();
 
+  const scanStart = performance.now();
   const scanResults = await runAllScanners(scanners);
+  const scanDurationMs = performance.now() - scanStart;
 
   spinner?.stop();
 
@@ -156,7 +162,7 @@ async function main(): Promise<void> {
   if (isJson) {
     console.log(JSON.stringify(result, null, 2));
   } else {
-    renderResults(score, detections);
+    renderResults(score, detections, scanDurationMs);
 
     // Hint about --merge when autonomy is empty and no merge was used
     const autonomyScore = score.categories.find((c) => c.category === "autonomy");
@@ -166,12 +172,22 @@ async function main(): Promise<void> {
     }
   }
 
+  // --compare requires --submit
+  if (values.compare && !values.submit) {
+    console.error(
+      "\x1b[31m  --compare requires --submit\x1b[0m"
+    );
+    process.exit(1);
+  }
+
   // --submit flow
   if (values.submit) {
-    const handle = values.handle;
-    if (!handle || !HANDLE_RE.test(handle)) {
+    // Auto-generate handle if omitted
+    const handle = values.handle ?? randomBytes(4).toString("hex");
+    // Only validate if explicitly provided
+    if (values.handle && !HANDLE_RE.test(values.handle)) {
       console.error(
-        "\x1b[31m  --handle is required for --submit (3-39 chars, lowercase alphanumeric/hyphens/underscores)\x1b[0m"
+        "\x1b[31m  --handle must be 3-39 chars, lowercase alphanumeric/hyphens/underscores\x1b[0m"
       );
       process.exit(1);
     }
@@ -222,6 +238,58 @@ async function main(): Promise<void> {
         console.log(`  \x1b[32m│\x1b[0m ${inner.padEnd(width - 2)} \x1b[32m│\x1b[0m`);
         console.log(`  \x1b[32m│\x1b[0m ${urlLine.padEnd(width - 2)} \x1b[32m│\x1b[0m`);
         console.log(`  \x1b[32m└${border}┘\x1b[0m\n`);
+
+        // --compare flow
+        if (values.compare) {
+          const compareAction = values.compare === "create" ? "create" : "join";
+          const comparePayload: Record<string, string> = { action: compareAction, handle };
+          if (compareAction === "join") {
+            const code = values.compare;
+            if (!/^[a-z0-9]{6}$/.test(code)) {
+              console.error(chalk.red("  --compare code must be 6 lowercase hex characters"));
+              process.exit(1);
+            }
+            comparePayload.code = code;
+          }
+
+          try {
+            const cmpRes = await fetch(`${submitUrl}/api/compare`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(comparePayload),
+            });
+
+            if (cmpRes.ok) {
+              const cmpBody = (await cmpRes.json()) as { code?: string; url?: string };
+              const sep = "─".repeat(42);
+
+              if (compareAction === "create" && cmpBody.code) {
+                console.log(`  ${chalk.bold.white("COMPARE MODE")}`);
+                console.log(`  ${chalk.gray(sep)}`);
+                console.log(`  Share this code:  ${chalk.bold.white(cmpBody.code)}`);
+                console.log();
+                console.log(`  They run:`);
+                console.log(`    ${chalk.cyan(`npx vibecheck-score --deep --submit --compare ${cmpBody.code}`)}`);
+                console.log();
+                console.log(`  Then both visit:`);
+                console.log(`    ${chalk.cyan(`${submitUrl}/compare/${cmpBody.code}`)}`);
+                console.log(`  ${chalk.gray(sep)}`);
+                console.log();
+              } else if (compareAction === "join" && cmpBody.url) {
+                console.log(`  ${chalk.green("✓")} Joined comparison ${chalk.bold(values.compare)}`);
+                console.log();
+                console.log(`  View the comparison:`);
+                console.log(`    ${chalk.cyan(cmpBody.url)}`);
+                console.log();
+              }
+            } else {
+              const cmpErr = (await cmpRes.json().catch(() => ({}))) as { error?: string };
+              console.error(chalk.red(`  Compare failed: ${cmpErr.error ?? cmpRes.statusText}`));
+            }
+          } catch {
+            console.error(chalk.yellow(`  Could not reach ${submitUrl} for comparison.`));
+          }
+        }
       } else if (res.status === 403) {
         console.error(
           "\n  \x1b[31m✗ This handle is owned by a different machine.\x1b[0m"

@@ -51,6 +51,53 @@ const DIMENSION_COMMENTARY: Record<
   },
 };
 
+export const ARCHETYPE_NAMES: Record<string, string> = {
+  MARD: "The Orchestrator",
+  MARC: "The Methodist",
+  MARL: "The Strategist",
+  MACD: "The Planner",
+  MACL: "The Analyst",
+  MGRD: "The Engineer",
+  MGRL: "The Pragmatist",
+  MGCD: "The Sentinel",
+  MGCL: "The Scholar",
+  VARD: "The Powerhouse",
+  VARL: "The Maverick",
+  VACD: "The Experimenter",
+  VACL: "The Freelancer",
+  VGRD: "The Blitz Builder",
+  VGRL: "The Scrapper",
+  VGCD: "The Tinkerer",
+  VGCL: "The Explorer",
+};
+
+export const ARCHETYPE_DESCRIPTIONS: Record<string, string> = {
+  MARD: "Deep model expertise, autonomous agents, rigorous shipping, and a deep tool ecosystem.",
+  MARC: "Strategic model selection with autonomous agents, but shipping is measured and deliberate.",
+  MARL: "Smart model strategy with autonomous agents and rapid shipping, but a lighter tool footprint.",
+  MACD: "Master strategist with autonomous agents and deep tooling, but cautious on shipping.",
+  MACL: "Strategic thinker with autonomous agents in a lean setup. Quality over quantity.",
+  MGRD: "Model expertise paired with guided agents and rigorous process. You steer the ship.",
+  MGRL: "Smart model use, guided agents, and rapid shipping with a lean stack.",
+  MGCD: "Deep model knowledge, guided agents, cautious shipping, deep tools. The fortress.",
+  MGCL: "Thoughtful model strategy in a guided, lean setup. Methodical and measured.",
+  VARD: "Velocity-first with autonomous agents, rapid shipping, and deep tooling.",
+  VARL: "Speed plus autonomy plus rapid shipping. Light on tools but heavy on output.",
+  VACD: "Velocity seeker with autonomous agents, cautious shipping, and deep tools.",
+  VACL: "Fast, autonomous, cautious, light. Moves fast but picks battles carefully.",
+  VGRD: "Velocity is the vibe. Ships fast, integrates everything, but keeps the AI on a leash.",
+  VGRL: "Fast, guided, rapid, light. Does more with less and ships it yesterday.",
+  VGCD: "Velocity seeker who tinkers with deep tools under guided supervision.",
+  VGCL: "Fast-moving, guided, cautious, and light. Just getting started, but moving quick.",
+};
+
+export const LETTER_MEANINGS: Record<string, [string, string]> = {
+  intelligence: ["M = Master strategist", "V = Velocity seeker"],
+  autonomy: ["A = Autonomous agents", "G = Guided agents"],
+  ship: ["R = Rapid shipper", "C = Cautious shipper"],
+  depth: ["D = Deep tooling", "L = Light tooling"],
+};
+
 const IMPROVEMENT_HINTS: Partial<Record<TaxonomyCategory, string>> = {
   ship: "Add a GitHub Actions workflow or deploy config to level up.",
   tooling: "Try connecting an MCP server — filesystem or GitHub are great starters.",
@@ -59,7 +106,7 @@ const IMPROVEMENT_HINTS: Partial<Record<TaxonomyCategory, string>> = {
   ops: "Add build/dev/lint scripts to package.json for a quick ops boost.",
 };
 
-function commentaryForScore(
+export function commentaryForScore(
   cat: TaxonomyCategory,
   score: number
 ): string {

@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Vibe Coder Score — How good is your AI coding setup?",
+  title: "Vibe Coder Score — Where does your AI workflow land?",
   description:
-    "Deep scan your AI coding environment. Get your tier, archetype, and shareable card.",
+    "Map your AI coding setup against a taxonomy of development workflows. One command. Nothing leaves your machine.",
 };
 
 export default function RootLayout({

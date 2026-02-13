@@ -3,12 +3,21 @@ import ora from "ora";
 import type {
   ScoreResult,
   Detection,
-  CategoryScore,
   TaxonomyCategory,
 } from "../types.js";
 import { CATEGORY_EMOJI, CATEGORY_LABELS, TAXONOMY_CATEGORIES } from "../types.js";
 import { getNextTier } from "../scoring/tiers.js";
 import { generateNarrative } from "./narrative.js";
+import {
+  ARCHETYPE_NAMES,
+  ARCHETYPE_DESCRIPTIONS,
+  LETTER_MEANINGS,
+  commentaryForScore,
+} from "./narrative.js";
+
+const HEAVY_SEP = "━".repeat(43);
+const LIGHT_SEP = "─".repeat(42);
+const INDENT = "  ";
 
 function scoreColor(score: number): (text: string) => string {
   if (score >= 50) return chalk.green;
@@ -26,116 +35,187 @@ function tierBadge(tier: string): string {
   return badges[tier] ?? chalk.gray(`[${tier}]`);
 }
 
+// Strip ANSI escape codes for width measurement
+function stripAnsi(s: string): string {
+  // eslint-disable-next-line no-control-regex
+  return s.replace(/\x1b\[[0-9;]*m/g, "");
+}
+
+function renderArchetypeBox(typeCode: string): string {
+  const name = ARCHETYPE_NAMES[typeCode] ?? "Unknown";
+  const desc = ARCHETYPE_DESCRIPTIONS[typeCode] ?? "";
+  const keys = Object.keys(LETTER_MEANINGS);
+
+  const line1 = `${typeCode} — ${name}`;
+  const meanings1 = `${LETTER_MEANINGS[keys[0]][typeCode[0] === "M" ? 0 : 1]} · ${LETTER_MEANINGS[keys[1]][typeCode[1] === "A" ? 0 : 1]}`;
+  const meanings2 = `${LETTER_MEANINGS[keys[2]][typeCode[2] === "R" ? 0 : 1]} · ${LETTER_MEANINGS[keys[3]][typeCode[3] === "D" ? 0 : 1]}`;
+
+  // Truncate description to fit in box (max 39 chars inner width)
+  const maxDesc = 39;
+  const truncDesc = desc.length > maxDesc ? desc.slice(0, maxDesc - 1) + "…" : desc;
+
+  const boxW = 43;
+  const innerW = boxW - 4; // "│ " + " │"
+  const pad = (s: string) => {
+    const plain = stripAnsi(s);
+    return s + " ".repeat(Math.max(0, innerW - plain.length));
+  };
+
+  const lines = [
+    `${INDENT}┌${"─".repeat(boxW - 2)}┐`,
+    `${INDENT}│ ${pad(chalk.bold.white(line1))} │`,
+    `${INDENT}│ ${pad(chalk.gray(meanings1))} │`,
+    `${INDENT}│ ${pad(chalk.gray(meanings2))} │`,
+    `${INDENT}│ ${pad(chalk.gray(truncDesc))} │`,
+    `${INDENT}└${"─".repeat(boxW - 2)}┘`,
+  ];
+  return lines.join("\n");
+}
+
+function renderTaxonomyTable(
+  detections: Detection[],
+  durationMs?: number
+): string {
+  const lines: string[] = [];
+  const catW = 14;
+  const nameW = 40;
+
+  // Group detections by category in taxonomy order
+  const grouped = new Map<TaxonomyCategory, Detection[]>();
+  for (const d of detections) {
+    const list = grouped.get(d.category) ?? [];
+    list.push(d);
+    grouped.set(d.category, list);
+  }
+
+  let categoryCount = 0;
+  for (const cat of TAXONOMY_CATEGORIES) {
+    const items = grouped.get(cat);
+    if (!items || items.length === 0) continue;
+    categoryCount++;
+
+    for (let i = 0; i < items.length; i++) {
+      const d = items[i];
+      const catLabel = i === 0 ? CATEGORY_LABELS[cat] : "";
+      const truncName = d.name.length > nameW ? d.name.slice(0, nameW - 1) + "…" : d.name;
+      const badge = tierBadge(d.tier);
+      lines.push(`${INDENT}  ${catLabel.padEnd(catW)} ${truncName.padEnd(nameW)} ${badge}`);
+    }
+  }
+
+  // Footer
+  const scanTime = durationMs ? ` · scanned in ${(durationMs / 1000).toFixed(1)}s` : "";
+  lines.push(chalk.gray(`${INDENT}  ${detections.length} signals · ${categoryCount} categories${scanTime}`));
+
+  return lines.join("\n");
+}
+
 export function createSpinner(text: string) {
   return ora({ text, spinner: "dots" });
 }
 
 export function renderResults(
   score: ScoreResult,
-  detections: Detection[]
+  detections: Detection[],
+  durationMs?: number
 ): void {
   console.log();
 
-  // Header
-  const levelStr = chalk.bold.white(`Level ${score.level}`);
-  const tierStr = chalk.bold.cyan(score.tier.title);
-  const typeStr = chalk.dim(`[${score.typeCode.code}]`);
-  console.log(
-    `  ${levelStr} ${tierStr} ${typeStr}`
-  );
-  console.log(`  ${chalk.dim(score.tier.tagline)}`);
+  // 1. Top separator
+  console.log(`${INDENT}${chalk.gray(HEAVY_SEP)}`);
   console.log();
 
-  // Narrative summary
-  const narrative = generateNarrative(score, detections);
-  console.log(`  ${chalk.italic(narrative)}`);
+  // 2. VIBE CODER SCORE header
+  console.log(`${INDENT}${chalk.bold.white("VIBE CODER SCORE")}`);
   console.log();
 
-  // Category bar chart
-  const catMap = new Map<TaxonomyCategory, CategoryScore>(
-    score.categories.map((c) => [c.category, c])
-  );
-
-  for (const cat of TAXONOMY_CATEGORIES) {
-    const cs = catMap.get(cat)!;
-    const label = CATEGORY_LABELS[cat].padEnd(12);
-    const filled = Math.round(cs.score / 10);
-    const empty = 10 - filled;
-    const bar = scoreColor(cs.score)("█".repeat(filled)) + chalk.dim("░".repeat(empty));
-    const scoreStr = scoreColor(cs.score)(String(cs.score).padStart(3));
-    console.log(`  ${label}  ${bar}  ${scoreStr}`);
-  }
+  // 3. Level · TierTitle [CODE] + tagline
+  const levelStr = `Level ${score.level}`;
+  const tierStr = score.tier.title;
+  const typeStr = `[${score.typeCode.code}]`;
+  console.log(`${INDENT}${chalk.bold.white(`${levelStr} · ${tierStr}`)} ${chalk.gray(typeStr)}`);
+  console.log(`${INDENT}${chalk.gray(`"${score.tier.tagline}"`)}`);
   console.log();
 
-  // Detection list grouped by category
-  console.log(chalk.bold("  Detections"));
-  console.log(chalk.dim("  " + "-".repeat(52)));
-
-  for (const cat of TAXONOMY_CATEGORIES) {
-    const catDetections = detections.filter(
-      (d) => d.category === cat
-    );
-    if (catDetections.length === 0) continue;
-
-    console.log(
-      `  ${CATEGORY_EMOJI[cat]} ${chalk.bold(CATEGORY_LABELS[cat])}`
-    );
-    for (const d of catDetections) {
-      const badge = tierBadge(d.tier);
-      const innovation =
-        d.taxonomyMatch === null ? chalk.yellow(" *") : "";
-      const conf =
-        d.confidence === "low" ? chalk.dim(" (low)") : "";
-      console.log(
-        `     ${badge} ${d.name}${innovation}${conf}`
-      );
-      console.log(`       ${chalk.dim(d.source)}`);
-    }
-  }
+  // 4. Archetype box
+  console.log(renderArchetypeBox(score.typeCode.code));
   console.log();
 
-  // Pioneer badge
+  // 5. Pioneer badge (if earned)
   if (score.pioneer.isPioneer) {
     console.log(
-      chalk.yellow.bold("  ★ Pioneer Badge")
+      `${INDENT}${chalk.yellow.bold("★ Pioneer Badge")}`
     );
     console.log(
-      chalk.yellow(
-        `    ${score.pioneer.innovations.length} innovation(s) detected`
-      )
+      `${INDENT}${chalk.yellow(`  ${score.pioneer.innovations.length} innovation(s) detected`)}`
     );
     for (const inn of score.pioneer.innovations) {
       console.log(
-        chalk.yellow(`    → ${inn.name} (${inn.source})`)
+        `${INDENT}${chalk.yellow(`  → ${inn.name}`)}`
       );
     }
     console.log();
   }
 
-  // Improvement hints
+  // 6. YOUR SETUP header + bar chart + narrative
+  console.log(`${INDENT}${chalk.bold.white("YOUR SETUP")}`);
+  console.log(`${INDENT}${chalk.gray(LIGHT_SEP)}`);
+  console.log();
+
+  const catMap = new Map<TaxonomyCategory, number>(
+    score.categories.map((c) => [c.category, c.score])
+  );
+
+  for (const cat of TAXONOMY_CATEGORIES) {
+    const s = catMap.get(cat) ?? 0;
+    const label = CATEGORY_LABELS[cat].padEnd(12);
+    const filled = Math.round(s / 10);
+    const empty = 10 - filled;
+    const bar = scoreColor(s)("█".repeat(filled)) + chalk.gray("░".repeat(empty));
+    const scoreStr = scoreColor(s)(String(s).padStart(3));
+    console.log(`${INDENT}  ${label}  ${bar}  ${scoreStr}`);
+  }
+  console.log();
+
+  const narrative = generateNarrative(score, detections);
+  console.log(`${INDENT}${chalk.white(narrative)}`);
+  console.log();
+
+  // 7. WHAT WE FOUND header + taxonomy table
+  console.log(`${INDENT}${chalk.bold.white("WHAT WE FOUND")}`);
+  console.log(`${INDENT}${chalk.gray(LIGHT_SEP)}`);
+  console.log();
+  console.log(renderTaxonomyTable(detections, durationMs));
+  console.log();
+
+  // 8. GROWTH AREAS — up to 3 weakest categories with commentary
   const weakest = [...score.categories]
     .filter((c) => c.score < 50)
     .sort((a, b) => a.score - b.score)
     .slice(0, 3);
 
   if (weakest.length > 0) {
-    console.log(chalk.bold("  Growth areas"));
+    console.log(`${INDENT}${chalk.bold.white("GROWTH AREAS")}`);
+    console.log(`${INDENT}${chalk.gray(LIGHT_SEP)}`);
+    console.log();
     for (const w of weakest) {
-      console.log(
-        `  ${chalk.dim("→")} ${CATEGORY_LABELS[w.category]}: ${w.score}/100`
-      );
+      const emoji = CATEGORY_EMOJI[w.category];
+      console.log(`${INDENT}  ${emoji} ${chalk.white(CATEGORY_LABELS[w.category])} ${chalk.gray(`(${w.score}/100)`)}`);
+      console.log(`${INDENT}    ${chalk.gray(commentaryForScore(w.category, w.score))}`);
     }
     console.log();
   }
 
-  // Next tier hint
+  // 9. Next tier hint
   const next = getNextTier(score.tier.title);
   if (next) {
     console.log(
-      chalk.dim(
-        `  Next tier: ${next.title} (level ${next.minLevel}+)`
-      )
+      `${INDENT}${chalk.gray(`Next tier: ${next.title} (level ${next.minLevel}+)`)}`
     );
     console.log();
   }
+
+  // 10. Bottom separator
+  console.log(`${INDENT}${chalk.gray(HEAVY_SEP)}`);
+  console.log();
 }
