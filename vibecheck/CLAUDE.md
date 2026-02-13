@@ -2,7 +2,7 @@
 
 ## What This Is
 
-Two-package monorepo: `vibecheck-score` (npm CLI that scans your AI coding setup) + `vibecheck.dev` (Next.js 15 web app that displays scores, generates shareable cards).
+Two-package monorepo: `vibecheck-score` (npm CLI that scans your AI coding setup) + `vibecheck.dev` (Next.js 15 web app that displays scores, generates shareable cards, and hosts side-by-side comparisons).
 
 ## Monorepo Structure
 
@@ -10,7 +10,7 @@ Two-package monorepo: `vibecheck-score` (npm CLI that scans your AI coding setup
 vibecheck/
 ├── packages/probe/     # npm: vibecheck-score (TypeScript CLI)
 │   └── src/
-│       ├── index.ts               # CLI entry point (--help, --json, --deep, --merge, --submit)
+│       ├── index.ts               # CLI entry point (--help, --json, --deep, --merge, --submit, --compare)
 │       ├── types.ts               # ProbeResult, Detection (with optional points/scanScope), ScoreResult
 │       ├── scoring/engine.ts      # detections → category scores → level → tier → type code → pioneer
 │       ├── scoring/tiers.ts       # tier lookup helpers
@@ -33,12 +33,16 @@ vibecheck/
 │       │   ├── deploy.ts          # vercel/netlify/fly/cloudflare/docker configs, deploy CLIs
 │       │   └── social.ts          # git remote, npm public, webhooks
 │       └── output/
-│           ├── terminal.ts        # chalk + ora rich CLI output (bar chart, narrative)
-│           └── narrative.ts       # Dimension commentary + narrative generator
+│           ├── terminal.ts        # chalk + ora rich CLI output (archetype box, taxonomy table, bar chart, growth areas)
+│           └── narrative.ts       # Dimension commentary, archetype data, narrative generator
 └── packages/web/       # Next.js 15: vibecheck.dev
     └── src/
         ├── app/               # App router pages + API routes
-        │   └── api/og/[handle]/route.tsx  # Satori OG image generation
+        │   ├── api/og/[handle]/route.tsx  # Satori OG image generation
+        │   ├── api/submit/route.ts        # Submit probe results
+        │   ├── api/compare/route.ts       # Create/join comparisons
+        │   ├── result/[handle]/page.tsx   # Individual result page
+        │   └── compare/[code]/page.tsx    # Side-by-side comparison (waiting + complete states)
         ├── lib/
         │   ├── types.ts               # Duplicated from probe (rule of three)
         │   ├── scoring.ts             # Duplicated scoring engine
@@ -47,7 +51,9 @@ vibecheck/
         │   ├── satori-card.tsx        # Card component for Satori rendering
         │   └── radar-svg.tsx          # Inline SVG radar chart (8 dimensions)
         └── components/
-            └── PioneerCard.tsx        # Gold-border pioneer card wrapper
+            ├── PioneerCard.tsx        # Gold-border pioneer card wrapper
+            ├── RefreshTimer.tsx       # Auto-refresh client component (compare waiting state)
+            └── CopyBlock.tsx          # Pre block with copy button (AI safety review)
 ```
 
 ## Key Commands
@@ -85,11 +91,20 @@ After all scanners complete, artifact-level dedup suppresses v2 detections when 
 
 **UFS architecture:** One config-driven scanner with a typed array of ~50 checks and 6 check functions (`exists`, `lineCount`, `dirChildren`, `grepKeywords`, `jsonField`, `shell`, `testRatio`, `filePermission`). Checks are ordered highest-threshold-first per artifact; conditional chains emit only the highest match per (artifact, category) pair. Multi-category emissions let one artifact award points across multiple categories. Scopes (`project`/`workspace`/`global`) control where checks run; `--deep` gates global scope.
 
-Terminal output: tier header → narrative paragraph → aligned bar chart → detection list → pioneer badge → growth areas → next tier hint.
+Terminal output: top separator → VIBE CODER SCORE header → level/tier/code → archetype box → pioneer badge → YOUR SETUP (bar chart + narrative) → WHAT WE FOUND (taxonomy table) → GROWTH AREAS (commentary) → next tier → bottom separator.
+
+## Compare Mode
+
+Two-person comparison flow via `--compare` flag (requires `--submit`):
+- `--compare create`: POSTs to `/api/compare` with `action: "create"`, gets back a 6-char hex code
+- `--compare <code>`: POSTs to `/api/compare` with `action: "join"`, gets back compare URL
+- DB: `comparisons` table (code, handle_a, handle_b, timestamps). Race-condition guard via `.is("handle_b", null)` on join
+- Web: `/compare/[code]` page — waiting state with 15s auto-refresh (`RefreshTimer`), complete state with identity cards, dimension bars (indigo/emerald), divergence analysis, unique detections comparison
+- Handle auto-generated as 8-char hex if `--handle` omitted
 
 Registry is a flat JSON array (171 entries) — editable without recompilation. The repositories scanner walks sub-projects up to 2 levels deep. The `--merge` flag lets you combine detections from scans run on different machines. No network calls (privacy-first); social scanner is local-only for v1.
 
-Narrative commentary is duplicated in `packages/probe/src/output/narrative.ts` and `packages/web/src/lib/narrative-templates.ts` — extract to `@vibecheck/core` when a third consumer appears.
+Narrative commentary + archetype data is duplicated in `packages/probe/src/output/narrative.ts` and `packages/web/src/lib/narrative-templates.ts` — extract to `@vibecheck/core` when a third consumer appears.
 
 ## Context Docs
 
