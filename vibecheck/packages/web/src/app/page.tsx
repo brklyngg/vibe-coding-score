@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { CommandBlock } from "@/components/CommandBlock";
 import { CopyBlock } from "@/components/CopyBlock";
 
@@ -40,6 +41,15 @@ export default function Home() {
         <p className="mb-6 text-lg text-white/60">
           Scans your tool configs, AI settings, and workflow patterns.
         </p>
+
+        <Image
+          src="/hero.jpg"
+          alt="Lobster noir — a stylized illustration for Vibe Coder Score"
+          width={1400}
+          height={763}
+          priority
+          className="mb-8 mt-2 w-full rounded-xl border border-white/10"
+        />
 
         <a
           href="/result/demo"
