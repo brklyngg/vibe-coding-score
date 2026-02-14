@@ -11,7 +11,6 @@ import { generateNarrative } from "./narrative.js";
 import {
   ARCHETYPE_NAMES,
   ARCHETYPE_DESCRIPTIONS,
-  LETTER_MEANINGS,
   commentaryForScore,
 } from "./narrative.js";
 
@@ -44,11 +43,6 @@ function stripAnsi(s: string): string {
 function renderArchetypeBox(typeCode: string): string {
   const name = ARCHETYPE_NAMES[typeCode] ?? "Unknown";
   const desc = ARCHETYPE_DESCRIPTIONS[typeCode] ?? "";
-  const keys = Object.keys(LETTER_MEANINGS);
-
-  const line1 = `${typeCode} — ${name}`;
-  const meanings1 = `${LETTER_MEANINGS[keys[0]][typeCode[0] === "M" ? 0 : 1]} · ${LETTER_MEANINGS[keys[1]][typeCode[1] === "A" ? 0 : 1]}`;
-  const meanings2 = `${LETTER_MEANINGS[keys[2]][typeCode[2] === "R" ? 0 : 1]} · ${LETTER_MEANINGS[keys[3]][typeCode[3] === "D" ? 0 : 1]}`;
 
   // Word-wrap description to fit in box (max 49 chars inner width, up to 2 lines)
   const maxDesc = 49;
@@ -79,9 +73,7 @@ function renderArchetypeBox(typeCode: string): string {
 
   const lines = [
     `${INDENT}┌${"─".repeat(boxW - 2)}┐`,
-    `${INDENT}│ ${pad(chalk.bold.white(line1))} │`,
-    `${INDENT}│ ${pad(chalk.gray(meanings1))} │`,
-    `${INDENT}│ ${pad(chalk.gray(meanings2))} │`,
+    `${INDENT}│ ${pad(chalk.bold.white(name))} │`,
     ...descLines.map((dl) => `${INDENT}│ ${pad(chalk.gray(dl))} │`),
     `${INDENT}└${"─".repeat(boxW - 2)}┘`,
   ];
@@ -186,8 +178,7 @@ export function renderResults(
   // 3. Level · TierTitle [CODE] + tagline
   const levelStr = `Level ${score.level}`;
   const tierStr = score.tier.title;
-  const typeStr = `[${score.typeCode.code}]`;
-  console.log(`${INDENT}${chalk.bold.white(`${levelStr} · ${tierStr}`)} ${chalk.gray(typeStr)}`);
+  console.log(`${INDENT}${chalk.bold.white(`${levelStr} · ${tierStr}`)}`);
   console.log(`${INDENT}${chalk.gray(`"${score.tier.tagline}"`)}`);
   console.log();
 

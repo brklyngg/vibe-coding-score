@@ -20,9 +20,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/garygurevich/vibecheck.git"
+    "url": "git+https://github.com/brklyngg/vibe-coding-score.git"
   },
-  "homepage": "https://vibecheck-zeta-pearl.vercel.app",
+  "homepage": "https://vibecheck.crunchy.tools",
   "keywords": [
     "vibe-coding",
     "ai-coding",

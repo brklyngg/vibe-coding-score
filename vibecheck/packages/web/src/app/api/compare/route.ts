@@ -67,7 +67,7 @@ export async function POST(request: Request) {
     const host =
       process.env.VERCEL_PROJECT_PRODUCTION_URL ??
       request.headers.get("host") ??
-      "vibecheck-zeta-pearl.vercel.app";
+      "vibecheck.crunchy.tools";
     const proto = host.includes("localhost") ? "http" : "https";
 
     return NextResponse.json({
@@ -121,7 +121,7 @@ export async function POST(request: Request) {
     const host =
       process.env.VERCEL_PROJECT_PRODUCTION_URL ??
       request.headers.get("host") ??
-      "vibecheck-zeta-pearl.vercel.app";
+      "vibecheck.crunchy.tools";
     const proto = host.includes("localhost") ? "http" : "https";
 
     return NextResponse.json({

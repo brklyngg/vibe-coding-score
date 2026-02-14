@@ -35,7 +35,7 @@ function getVersion(): string {
 }
 
 const HANDLE_RE = /^[a-z0-9_-]{3,39}$/;
-const DEFAULT_URL = "https://vibecheck-zeta-pearl.vercel.app"; // TODO: update when custom domain is set
+const DEFAULT_URL = "https://vibecheck.crunchy.tools";
 
 function printHelp(): void {
   console.log(`

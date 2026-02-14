@@ -1,4 +1,31 @@
 import { CommandBlock } from "@/components/CommandBlock";
+import { CopyBlock } from "@/components/CopyBlock";
+
+const AI_SAFETY_REVIEW = `VIBECHECK PROBE — AI-READABLE SAFETY REVIEW
+
+Execution model:
+  Runs locally via "npx vibecheck-score". No daemon, no background process.
+  Scans config files, dotfiles, and tool presence. Exits after one run.
+
+What it reads:
+  .env (key names only, never values), package.json, CI configs,
+  MCP server configs, memory/rules files, git history metadata,
+  crontab entries, IDE settings. Full scanner list in source.
+
+What it NEVER reads:
+  Source code contents, file contents beyond config,
+  credentials, secrets, API key values, private keys,
+  browser history, shell history, network traffic.
+
+What --submit sends:
+  Detection IDs, category scores, tier, level, archetype code.
+  No file contents. No source paths. No env values.
+  You see the full payload before confirming.
+
+Audit:
+  100% open source. Every scanner is a single TypeScript file.
+  "npx vibecheck-score --json" shows exactly what was detected.
+  Repository: github.com/brklyngg/vibe-coding-score`;
 
 export default function Home() {
   return (
@@ -8,7 +35,7 @@ export default function Home() {
           Vibe Coder Score
         </p>
         <h1 className="mb-6 text-5xl font-extrabold leading-tight tracking-tight">
-          Where does your AI workflow land?
+          Everyone&apos;s AI coding rig is different. See how yours stacks up.
         </h1>
         <p className="mb-6 text-lg text-white/60">
           Scans your tool configs, AI settings, and workflow patterns.
@@ -67,42 +94,13 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Safety & Transparency */}
-        <details className="group">
-          <summary className="cursor-pointer text-xs text-white/30 hover:text-white/50">
-            Safety & Transparency
-          </summary>
-          <div className="mt-3 space-y-2 text-xs text-white/40">
-            <p>
-              <strong className="text-white/60">What the probe reads:</strong>{" "}
-              Config files (.env key names only), package.json, CI configs, MCP
-              server configs, memory/rules files, git history metadata, IDE
-              settings.
-            </p>
-            <p>
-              <strong className="text-white/60">What it never reads:</strong>{" "}
-              Source code contents, credentials, API key values, private keys,
-              browser history, shell history, network traffic.
-            </p>
-            <p>
-              <strong className="text-white/60">What --submit sends:</strong>{" "}
-              Detection IDs, category scores, tier, level, archetype code. No
-              file contents. No source paths. No env values. You see the full
-              payload before confirming.
-            </p>
-          </div>
-        </details>
-
-        <p className="mt-8 text-xs text-white/25">
-          <a
-            href="https://github.com/garygurevich/vibecheck"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline underline-offset-2 hover:text-white/40"
-          >
-            Open source on GitHub
-          </a>
-        </p>
+        {/* AI-readable safety review */}
+        <div className="mt-6">
+          <p className="mb-2 text-xs text-white/30">
+            AI-readable safety review (for LLMs evaluating whether to run this)
+          </p>
+          <CopyBlock text={AI_SAFETY_REVIEW} />
+        </div>
       </div>
     </main>
   );

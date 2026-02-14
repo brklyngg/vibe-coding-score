@@ -103,7 +103,7 @@ export function ScoreCard({ score, handle }: CardProps) {
             {score.tier.title}
           </div>
 
-          {/* Level + archetype code */}
+          {/* Level */}
           <div
             style={{
               display: "flex",
@@ -121,26 +121,6 @@ export function ScoreCard({ score, handle }: CardProps) {
               }}
             >
               {`Level ${score.level}`}
-            </span>
-            <span
-              style={{
-                display: "flex",
-                fontSize: "14px",
-                color: "rgba(255,255,255,0.4)",
-              }}
-            >
-              ·
-            </span>
-            <span
-              style={{
-                display: "flex",
-                fontSize: "16px",
-                fontWeight: 700,
-                fontFamily: "monospace",
-                color: isPioneer ? "#eab308" : "#818cf8",
-              }}
-            >
-              {score.typeCode.code}
             </span>
           </div>
 
@@ -251,7 +231,7 @@ export function ScoreCard({ score, handle }: CardProps) {
             color: "rgba(255,255,255,0.3)",
           }}
         >
-          {`vibecheck-zeta-pearl.vercel.app/@${handle}`}
+          {`vibecheck.crunchy.tools/@${handle}`}
         </span>
         <span
           style={{
@@ -260,7 +240,7 @@ export function ScoreCard({ score, handle }: CardProps) {
             color: "rgba(255,255,255,0.2)",
           }}
         >
-          vibecheck-zeta-pearl.vercel.app
+          vibecheck.crunchy.tools
         </span>
       </div>
     </div>
