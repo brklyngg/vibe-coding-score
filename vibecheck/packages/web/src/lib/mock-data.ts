@@ -1,4 +1,4 @@
-import type { Detection, ScoreResult } from "./types";
+import type { Detection, ScoreResult, ProbeResult } from "./types";
 import { computeScore } from "./scoring";
 
 // Realistic mock detections for a "Gary-like" Level 67 Architect setup
@@ -285,6 +285,15 @@ export const MOCK_DETECTIONS: Detection[] = [
 ];
 
 export const MOCK_SCORE: ScoreResult = computeScore(MOCK_DETECTIONS);
+
+// Full ProbeResult for the /result/demo page
+export const MOCK_RESULT: ProbeResult = {
+  version: "0.3.0",
+  timestamp: "2026-02-14T00:00:00.000Z",
+  platform: "darwin",
+  detections: MOCK_DETECTIONS,
+  score: MOCK_SCORE,
+};
 
 // A simpler "Observer" level mock for testing lower tiers
 export const MOCK_OBSERVER_DETECTIONS: Detection[] = [

@@ -35,6 +35,7 @@ function getVersion(): string {
 }
 
 const HANDLE_RE = /^[a-z0-9_-]{3,39}$/;
+const DEFAULT_URL = "https://vibecheck-zeta-pearl.vercel.app"; // TODO: update when custom domain is set
 
 function printHelp(): void {
   console.log(`
@@ -47,12 +48,12 @@ function printHelp(): void {
     --help              Show this help message
     --json              Output raw ProbeResult as JSON
     --merge <file>      Merge detections from another scan (JSON file)
-    --deep              Scan home directory for global AI config (crontab, launchd)
-    --submit            Submit results to vibecheck-zeta-pearl.vercel.app
+    --shallow           Skip global checks (crontab, launchd) for faster scan
+    --submit            Submit results to ${DEFAULT_URL}
     --handle <id>       Your handle (auto-generated if omitted)
     --compare create    Create a new comparison
     --compare <code>    Join an existing comparison
-    --url <url>         Override submit URL (default: https://vibecheck-zeta-pearl.vercel.app)
+    --url <url>         Override submit URL (default: ${DEFAULT_URL})
     --yes               Skip submit confirmation prompt
 `);
 }
@@ -62,7 +63,8 @@ async function main(): Promise<void> {
     options: {
       help: { type: "boolean", default: false },
       json: { type: "boolean", default: false },
-      deep: { type: "boolean", default: false },
+      deep: { type: "boolean", default: true },
+      shallow: { type: "boolean", default: false },
       merge: { type: "string" },
       submit: { type: "boolean", default: false },
       handle: { type: "string" },
@@ -80,7 +82,7 @@ async function main(): Promise<void> {
 
   const isJson = values.json ?? false;
 
-  const isDeep = values.deep ?? false;
+  const isDeep = values.shallow ? false : (values.deep ?? true);
 
   const scanners = [
     new EnvironmentScanner(),
@@ -171,28 +173,28 @@ async function main(): Promise<void> {
 
     renderResults(score, detections, scanDurationMs);
 
-    // Hint about --merge when autonomy is low and no merge was used
+    // Interactive agent prompt when autonomy is low and no merge was used
     const autonomyScore = score.categories.find((c) => c.category === "autonomy");
     const hasRemoteKeywords = detections.some((d) =>
       d.id.includes("orchestrator") || d.source.includes("remote") || d.source.includes("tailscale")
     );
-    if (!values.merge && (( autonomyScore?.score ?? 0) < 30 || hasRemoteKeywords)) {
-      const sep = "─".repeat(49);
-      console.log(`  ${chalk.gray(sep)}`);
-      console.log();
-      console.log(`  ${chalk.bold.white("SCAN YOUR AGENT'S MACHINE")}`);
-      console.log(`  ${chalk.gray("If your AI agent runs on a separate machine:")}`);
-      console.log();
-      console.log(`  ${chalk.gray("On the agent machine:")}`);
-      console.log(`    ${chalk.cyan("npx vibecheck-score --deep --json > agent-scan.json")}`);
-      console.log();
-      console.log(`  ${chalk.gray("Then merge here:")}`);
-      console.log(`    ${chalk.cyan("npx vibecheck-score --deep --merge agent-scan.json --submit")}`);
-      console.log();
-      console.log(`  ${chalk.gray('Or tell your AI assistant:')}`);
-      console.log(`    ${chalk.gray('"Run npx vibecheck-score --deep --json in my workspace')}`);
-      console.log(`    ${chalk.gray(' and save the output to agent-scan.json"')}`);
-      console.log();
+    if (!values.merge && !isJson && ((autonomyScore?.score ?? 0) < 30 || hasRemoteKeywords)) {
+      const rl = await import("node:readline/promises").then((m) =>
+        m.createInterface({ input: process.stdin, output: process.stdout })
+      );
+      const answer = await rl.question(
+        `\n  Do you also run AI tools on a separate machine? [y/N] `
+      );
+      rl.close();
+      if (answer.trim().toLowerCase() === "y") {
+        console.log();
+        console.log(`  ${chalk.gray("On that machine, run:")}`);
+        console.log(`    ${chalk.cyan("npx vibecheck-score --json > agent-scan.json")}`);
+        console.log();
+        console.log(`  ${chalk.gray("Then come back here and run:")}`);
+        console.log(`    ${chalk.cyan("npx vibecheck-score --merge agent-scan.json")}`);
+        console.log();
+      }
     }
   }
 
@@ -234,7 +236,7 @@ async function main(): Promise<void> {
         m.createInterface({ input: process.stdin, output: process.stdout })
       );
       const answer = await rl.question(
-        `\n  Submit results as \x1b[1m${handle}\x1b[0m to vibecheck-zeta-pearl.vercel.app? [Y/n] `
+        `\n  Submit results as \x1b[1m${handle}\x1b[0m to ${DEFAULT_URL.replace("https://", "")}? [Y/n] `
       );
       rl.close();
       if (answer.trim().toLowerCase() === "n") {
@@ -243,7 +245,7 @@ async function main(): Promise<void> {
       }
     }
 
-    const submitUrl = values.url ?? "https://vibecheck-zeta-pearl.vercel.app";
+    const submitUrl = values.url ?? DEFAULT_URL;
     try {
       const res = await fetch(`${submitUrl}/api/submit`, {
         method: "POST",
@@ -293,7 +295,7 @@ async function main(): Promise<void> {
                 console.log(`  Share this code:  ${chalk.bold.white(cmpBody.code)}`);
                 console.log();
                 console.log(`  They run:`);
-                console.log(`    ${chalk.cyan(`npx vibecheck-score --deep --submit --compare ${cmpBody.code}`)}`);
+                console.log(`    ${chalk.cyan(`npx vibecheck-score --submit --compare ${cmpBody.code}`)}`);
                 console.log();
                 const compareUrl = cmpBody.url ?? `${submitUrl}/compare/${cmpBody.code}`;
                 console.log(`  Then both visit:`);

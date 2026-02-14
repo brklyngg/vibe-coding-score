@@ -22,6 +22,7 @@ import {
 } from "@/lib/narrative-templates";
 import { PioneerCard } from "@/components/PioneerCard";
 import { CopyUrlButton } from "@/components/CopyUrlButton";
+import { MOCK_RESULT } from "@/lib/mock-data";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let _supabase: ReturnType<typeof createClient<any>> | null = null;
@@ -48,7 +49,7 @@ async function getResult(handle: string): Promise<ProbeResult | null> {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { handle } = await params;
-  const result = await getResult(handle);
+  const result = await getResult(handle) ?? (handle === "demo" ? MOCK_RESULT : null);
   if (!result) return { title: "Not Found" };
 
   const { score } = result;
@@ -96,7 +97,7 @@ function ScoreBar({ score }: { score: number }) {
 
 export default async function ResultPage({ params }: PageProps) {
   const { handle } = await params;
-  const result = await getResult(handle);
+  const result = await getResult(handle) ?? (handle === "demo" ? MOCK_RESULT : null);
   if (!result) notFound();
 
   const { score, detections } = result;
@@ -214,7 +215,7 @@ export default async function ResultPage({ params }: PageProps) {
         <p className="mt-4 text-xs text-white/30">
           Get your own score:{" "}
           <code className="text-indigo-300">
-            npx vibecheck-score --deep --submit --handle yourname --url https://vibecheck-brklyngg.vercel.app
+            npx vibecheck-score --submit --handle yourname
           </code>
         </p>
       </footer>

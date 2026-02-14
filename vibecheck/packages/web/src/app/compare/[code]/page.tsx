@@ -148,7 +148,7 @@ export default async function ComparePage({ params }: PageProps) {
         <div className="mb-8 rounded-lg border border-white/10 bg-white/5 p-4 text-left font-mono text-sm">
           <span className="text-white/40">$</span>{" "}
           <span className="text-indigo-300">
-            npx vibecheck-score --deep --submit --compare {comparison.code}
+            npx vibecheck-score --submit --compare {comparison.code}
           </span>
         </div>
 
@@ -360,7 +360,7 @@ export default async function ComparePage({ params }: PageProps) {
         <div className="rounded-lg border border-white/10 bg-white/5 p-4 font-mono text-xs">
           <span className="text-white/40">$</span>{" "}
           <span className="text-indigo-300">
-            npx vibecheck-score --deep --submit --compare create
+            npx vibecheck-score --submit --compare create
           </span>
         </div>
       </footer>
