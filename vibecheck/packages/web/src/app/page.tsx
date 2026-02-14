@@ -12,7 +12,6 @@ export default function Home() {
         </h1>
         <p className="mb-6 text-lg text-white/60">
           Scans your tool configs, AI settings, and workflow patterns.
-          Nothing leaves your machine.
         </p>
 
         <a

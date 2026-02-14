@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Vibe Coder Score — Where does your AI workflow land?",
   description:
-    "Map your AI coding setup against a taxonomy of development workflows. One command. Nothing leaves your machine.",
+    "Map your AI coding setup against a taxonomy of development workflows. One command.",
 };
 
 export default function RootLayout({
