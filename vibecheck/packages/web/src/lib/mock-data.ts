@@ -1,7 +1,7 @@
 import type { Detection, ScoreResult, ProbeResult } from "./types";
 import { computeScore } from "./scoring";
 
-// Realistic mock detections for a "Gary-like" Level 67 Architect setup
+// Realistic mock detections for a sample Level 67 Architect setup
 export const MOCK_DETECTIONS: Detection[] = [
   // Intelligence (models & providers)
   {
