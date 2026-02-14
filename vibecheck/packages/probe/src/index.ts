@@ -48,11 +48,11 @@ function printHelp(): void {
     --json              Output raw ProbeResult as JSON
     --merge <file>      Merge detections from another scan (JSON file)
     --deep              Scan home directory for global AI config (crontab, launchd)
-    --submit            Submit results to vibecheck-brklyngg.vercel.app
+    --submit            Submit results to vibecheck-zeta-pearl.vercel.app
     --handle <id>       Your handle (auto-generated if omitted)
     --compare create    Create a new comparison
     --compare <code>    Join an existing comparison
-    --url <url>         Override submit URL (default: https://vibecheck-brklyngg.vercel.app)
+    --url <url>         Override submit URL (default: https://vibecheck-zeta-pearl.vercel.app)
     --yes               Skip submit confirmation prompt
 `);
 }
@@ -234,7 +234,7 @@ async function main(): Promise<void> {
         m.createInterface({ input: process.stdin, output: process.stdout })
       );
       const answer = await rl.question(
-        `\n  Submit results as \x1b[1m${handle}\x1b[0m to vibecheck-brklyngg.vercel.app? [Y/n] `
+        `\n  Submit results as \x1b[1m${handle}\x1b[0m to vibecheck-zeta-pearl.vercel.app? [Y/n] `
       );
       rl.close();
       if (answer.trim().toLowerCase() === "n") {
@@ -243,7 +243,7 @@ async function main(): Promise<void> {
       }
     }
 
-    const submitUrl = values.url ?? "https://vibecheck-brklyngg.vercel.app";
+    const submitUrl = values.url ?? "https://vibecheck-zeta-pearl.vercel.app";
     try {
       const res = await fetch(`${submitUrl}/api/submit`, {
         method: "POST",

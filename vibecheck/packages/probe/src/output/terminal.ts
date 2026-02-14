@@ -50,9 +50,25 @@ function renderArchetypeBox(typeCode: string): string {
   const meanings1 = `${LETTER_MEANINGS[keys[0]][typeCode[0] === "M" ? 0 : 1]} · ${LETTER_MEANINGS[keys[1]][typeCode[1] === "A" ? 0 : 1]}`;
   const meanings2 = `${LETTER_MEANINGS[keys[2]][typeCode[2] === "R" ? 0 : 1]} · ${LETTER_MEANINGS[keys[3]][typeCode[3] === "D" ? 0 : 1]}`;
 
-  // Truncate description to fit in box (max 49 chars inner width)
+  // Word-wrap description to fit in box (max 49 chars inner width, up to 2 lines)
   const maxDesc = 49;
-  const truncDesc = desc.length > maxDesc ? desc.slice(0, maxDesc - 1) + "…" : desc;
+  const descLines: string[] = [];
+  if (desc.length <= maxDesc) {
+    descLines.push(desc);
+  } else {
+    const words = desc.split(" ");
+    let current = "";
+    for (const word of words) {
+      const next = current ? `${current} ${word}` : word;
+      if (next.length > maxDesc) {
+        if (current) descLines.push(current);
+        current = word;
+      } else {
+        current = next;
+      }
+    }
+    if (current) descLines.push(current);
+  }
 
   const boxW = 53;
   const innerW = boxW - 4; // "│ " + " │"
@@ -66,7 +82,7 @@ function renderArchetypeBox(typeCode: string): string {
     `${INDENT}│ ${pad(chalk.bold.white(line1))} │`,
     `${INDENT}│ ${pad(chalk.gray(meanings1))} │`,
     `${INDENT}│ ${pad(chalk.gray(meanings2))} │`,
-    `${INDENT}│ ${pad(chalk.gray(truncDesc))} │`,
+    ...descLines.map((dl) => `${INDENT}│ ${pad(chalk.gray(dl))} │`),
     `${INDENT}└${"─".repeat(boxW - 2)}┘`,
   ];
   return lines.join("\n");
