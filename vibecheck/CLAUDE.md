@@ -10,7 +10,7 @@ Two-package monorepo: `vibecheck-score` (npm CLI that scans your AI coding setup
 vibecheck/
 ├── packages/probe/     # npm: vibecheck-score (TypeScript CLI)
 │   └── src/
-│       ├── index.ts               # CLI entry point (--help, --json, --deep, --merge, --submit, --compare)
+│       ├── index.ts               # CLI entry point (--help, --json, --shallow, --merge, --submit, --compare)
 │       ├── types.ts               # ProbeResult, Detection (with optional points/scanScope), ScoreResult
 │       ├── scoring/engine.ts      # detections → category scores → level → tier → type code → pioneer
 │       ├── scoring/tiers.ts       # tier lookup helpers
@@ -46,14 +46,15 @@ vibecheck/
         ├── lib/
         │   ├── types.ts               # Duplicated from probe (rule of three)
         │   ├── scoring.ts             # Duplicated scoring engine
-        │   ├── mock-data.ts           # Realistic mock detections for dev
+        │   ├── mock-data.ts           # Mock detections + MOCK_RESULT for /result/demo
         │   ├── narrative-templates.ts  # Tier taglines, archetype names, pioneer hooks
         │   ├── satori-card.tsx        # Card component for Satori rendering
         │   └── radar-svg.tsx          # Inline SVG radar chart (8 dimensions)
         └── components/
             ├── PioneerCard.tsx        # Gold-border pioneer card wrapper
             ├── RefreshTimer.tsx       # Auto-refresh client component (compare waiting state)
-            └── CopyBlock.tsx          # Pre block with copy button (AI safety review)
+            ├── CopyBlock.tsx          # Pre block with copy button
+            └── CommandBlock.tsx       # Terminal command display with $ prompt + copy
 ```
 
 ## Key Commands
@@ -66,7 +67,7 @@ npm run build:probe  # TypeScript compile probe + copy registry.json to dist
 # Run the probe CLI locally
 node packages/probe/dist/index.js --help
 node packages/probe/dist/index.js --json         # JSON output (ProbeResult shape)
-node packages/probe/dist/index.js --deep          # Include global/home-dir checks (crontab, launchd)
+node packages/probe/dist/index.js --shallow       # Skip global checks (crontab, launchd) for faster scan
 node packages/probe/dist/index.js --merge f.json  # Merge detections from another scan
 ```
 
@@ -89,7 +90,7 @@ The probe runs 11 scanners in parallel via `Promise.allSettled` (9 v2 scanners +
 
 After all scanners complete, artifact-level dedup suppresses v2 detections when UFS covers the same artifact (e.g., UFS `ufs:claude-md:rich` supersedes v2 `claude-md`). The `supersedes` field on UFS config entries declares which v2 IDs to drop. Remaining detections are deduped by ID and fed into `computeScore()`.
 
-**UFS architecture:** One config-driven scanner with a typed array of ~50 checks and 6 check functions (`exists`, `lineCount`, `dirChildren`, `grepKeywords`, `jsonField`, `shell`, `testRatio`, `filePermission`). Checks are ordered highest-threshold-first per artifact; conditional chains emit only the highest match per (artifact, category) pair. Multi-category emissions let one artifact award points across multiple categories. Scopes (`project`/`workspace`/`global`) control where checks run; `--deep` gates global scope.
+**UFS architecture:** One config-driven scanner with a typed array of ~50 checks and 6 check functions (`exists`, `lineCount`, `dirChildren`, `grepKeywords`, `jsonField`, `shell`, `testRatio`, `filePermission`). Checks are ordered highest-threshold-first per artifact; conditional chains emit only the highest match per (artifact, category) pair. Multi-category emissions let one artifact award points across multiple categories. Scopes (`project`/`workspace`/`global`) control where checks run; global scope runs by default (use `--shallow` to skip). `--deep` is kept as a silent no-op for backward compat.
 
 Terminal output: top separator → VIBE CODER SCORE header → level/tier/code → archetype box → pioneer badge → YOUR SETUP (bar chart + narrative) → WHAT WE FOUND (taxonomy table) → GROWTH AREAS (commentary) → next tier → bottom separator.
 
