@@ -32,14 +32,11 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-8">
       <div className="max-w-2xl text-left">
-        <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-indigo-400">
-          Vibe Coder Score
-        </p>
         <h1 className="mb-6 text-5xl font-extrabold leading-tight tracking-tight">
-          Everyone&apos;s AI coding rig is different. See how yours stacks up.
+          How does your AI coding rig stack up?
         </h1>
         <p className="mb-6 text-lg text-white/60">
-          Scans your tool configs, AI settings, and workflow patterns.
+          NPX scans your tool configs, AI settings, and workflow patterns. Applies taxonomy.
         </p>
 
         <Image
@@ -50,13 +47,6 @@ export default function Home() {
           priority
           className="mb-8 mt-2 w-full rounded-xl border border-white/10"
         />
-
-        <a
-          href="/result/demo"
-          className="mb-10 inline-block text-base font-medium text-indigo-400 underline underline-offset-4 hover:text-indigo-300"
-        >
-          See a sample result →
-        </a>
 
         {/* Single command */}
         <p className="mb-2 text-base font-medium text-white/70">
@@ -97,6 +87,13 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        <a
+          href="/result/demo"
+          className="mt-10 mb-10 inline-block text-base font-medium text-indigo-400 underline underline-offset-4 hover:text-indigo-300"
+        >
+          See a sample result →
+        </a>
 
         {/* AI-readable safety review */}
         <div className="mt-6">
