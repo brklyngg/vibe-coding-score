@@ -18,7 +18,7 @@ What it NEVER reads:
   browser history, shell history, network traffic.
 
 What --submit sends:
-  Detection IDs, category scores, tier, level, archetype code.
+  Detection IDs, category scores, tier, level.
   No file contents. No source paths. No env values.
   You see the full payload before confirming.
 
@@ -54,7 +54,7 @@ export default function Home() {
         </p>
         <CommandBlock command="npx vibecheck-score" />
 
-        {/* What you get — 2x2 grid */}
+        {/* What you get — grid */}
         <div className="mt-10 mb-10">
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-widest text-white/50">
             What you get
@@ -64,12 +64,6 @@ export default function Home() {
               <p className="mb-1 text-base font-semibold text-white/80">Tier & Level</p>
               <p className="text-sm text-white/60">
                 A 0-100 score across 9 tiers from Observer to Industrialist.
-              </p>
-            </div>
-            <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-left">
-              <p className="mb-1 text-base font-semibold text-white/80">Archetype</p>
-              <p className="text-sm text-white/60">
-                A 4-letter code that captures how you build — strategy, autonomy, shipping, depth.
               </p>
             </div>
             <a

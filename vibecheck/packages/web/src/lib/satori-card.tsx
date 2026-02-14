@@ -1,7 +1,6 @@
 import type { ScoreResult, TaxonomyCategory } from "@vibe/scoring";
 import { CATEGORY_EMOJI } from "@vibe/scoring";
 import { radarDataUri } from "./radar-svg";
-import { ARCHETYPE_NAMES } from "./narrative-templates";
 
 interface CardProps {
   score: ScoreResult;
@@ -18,7 +17,6 @@ function getScoreMap(score: ScoreResult): Record<TaxonomyCategory, number> {
 
 export function ScoreCard({ score, handle }: CardProps) {
   const isPioneer = score.pioneer.isPioneer;
-  const archetypeName = ARCHETYPE_NAMES[score.typeCode.code] ?? "The Builder";
   const scoreMap = getScoreMap(score);
 
   const borderColor = isPioneer ? "#eab308" : "#3730a3";
@@ -122,18 +120,6 @@ export function ScoreCard({ score, handle }: CardProps) {
             >
               {`Level ${score.level}`}
             </span>
-          </div>
-
-          {/* Archetype name */}
-          <div
-            style={{
-              display: "flex",
-              fontSize: "13px",
-              color: "rgba(255,255,255,0.5)",
-              marginTop: "2px",
-            }}
-          >
-            {archetypeName}
           </div>
 
           {/* Tagline */}

@@ -13,7 +13,6 @@ import {
   CATEGORY_EMOJI,
 } from "@vibe/scoring";
 import {
-  ARCHETYPE_NAMES,
   DIMENSION_COMMENTARY,
 } from "@/lib/narrative-templates";
 import { RefreshTimer } from "@/components/RefreshTimer";
@@ -210,10 +209,7 @@ export default async function ComparePage({ params }: PageProps) {
             Level {scoreA.level}
           </p>
           <p className="text-sm text-white/60">
-            {scoreA.tier.title} [{scoreA.typeCode.code}]
-          </p>
-          <p className="mt-1 text-xs text-white/40">
-            {ARCHETYPE_NAMES[scoreA.typeCode.code] ?? "Unknown"}
+            {scoreA.tier.title}
           </p>
         </div>
         <div className="rounded-xl border border-emerald-400/30 bg-emerald-400/5 p-5">
@@ -224,10 +220,7 @@ export default async function ComparePage({ params }: PageProps) {
             Level {scoreB.level}
           </p>
           <p className="text-sm text-white/60">
-            {scoreB.tier.title} [{scoreB.typeCode.code}]
-          </p>
-          <p className="mt-1 text-xs text-white/40">
-            {ARCHETYPE_NAMES[scoreB.typeCode.code] ?? "Unknown"}
+            {scoreB.tier.title}
           </p>
         </div>
       </section>

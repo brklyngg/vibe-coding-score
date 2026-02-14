@@ -13,8 +13,6 @@ import {
 } from "@vibe/scoring";
 import {
   TIER_TAGLINES,
-  ARCHETYPE_NAMES,
-  ARCHETYPE_DESCRIPTIONS,
   DIMENSION_COMMENTARY,
   PIONEER_TAGLINE,
   PIONEER_HOOKS,
@@ -120,8 +118,6 @@ export default async function ResultPage({ params }: PageProps) {
   if (!result) notFound();
 
   const { score, detections } = result;
-  const archetype = ARCHETYPE_NAMES[score.typeCode.code] ?? "Unknown";
-  const archetypeDesc = ARCHETYPE_DESCRIPTIONS[score.typeCode.code] ?? "";
 
   // Group detections by category
   const detectionsByCategory = new Map<TaxonomyCategory, Detection[]>();
@@ -146,12 +142,6 @@ export default async function ResultPage({ params }: PageProps) {
         <p className="text-lg italic text-white/50">
           {TIER_TAGLINES[score.tier.title]}
         </p>
-      </section>
-
-      {/* Archetype */}
-      <section className="mb-10 rounded-xl border border-white/10 bg-white/5 p-6">
-        <h2 className="mb-1 text-xl font-bold">{archetype}</h2>
-        <p className="text-sm text-white/60">{archetypeDesc}</p>
       </section>
 
       {/* 8 Categories */}
