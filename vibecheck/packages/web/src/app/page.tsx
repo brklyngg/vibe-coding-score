@@ -42,33 +42,43 @@ export default function Home() {
           One command. Full transparency.
         </p>
 
-        {/* Primary command */}
+        {/* Block 1 — Scan yourself */}
         <p className="mb-2 text-left text-xs text-white/40">
-          Type this into your terminal
+          Type this into your terminal / or tell your AI assistant to run this
         </p>
         <div className="mb-2 rounded-lg border border-white/10 bg-white/5 p-4 font-mono text-sm">
           <span className="text-white/40">$</span>{" "}
           <span className="text-indigo-300">npx vibecheck-score --deep</span>
         </div>
-        <p className="mb-2 text-left text-xs text-white/40">
-          or tell your AI assistant to run this
-        </p>
-        <p className="mb-4 text-xs text-white/40">
+        <p className="mb-8 text-xs text-white/40">
           <code className="text-white/50">--deep</code> scans your full machine.
           Without it you get a quick project-only scan.
         </p>
 
-        {/* Submit command */}
-        <div className="mb-2 rounded-lg border border-white/10 bg-white/5 p-4 font-mono text-xs leading-relaxed">
+        {/* Block 2 — Scan your agent's machine */}
+        <p className="mb-2 text-left text-xs text-white/40">
+          Type this in your agent&apos;s terminal / Tell your coding agent to run this
+        </p>
+        <div className="mb-2 rounded-lg border border-white/10 bg-white/5 p-4 font-mono text-xs leading-relaxed text-left">
+          <div>
+            <span className="text-white/40">$</span>{" "}
+            <span className="text-indigo-300">
+              npx vibecheck-score --deep --json &gt; agent-scan.json
+            </span>
+          </div>
+        </div>
+        <p className="mb-2 text-xs text-white/40">
+          Run this on your agent&apos;s machine (Mac Mini, VPN server, etc.)
+        </p>
+        <p className="mb-2 text-left text-xs text-white/40">
+          Then merge:
+        </p>
+        <div className="mb-10 rounded-lg border border-white/10 bg-white/5 p-4 font-mono text-xs leading-relaxed text-left">
           <span className="text-white/40">$</span>{" "}
           <span className="text-indigo-300">
-            npx vibecheck-score --deep --submit --handle yourname
+            npx vibecheck-score --deep --merge agent-scan.json
           </span>
         </div>
-        <p className="mb-10 text-xs text-white/40">
-          <code className="text-white/50">--submit</code> shares your result.
-          You see everything before anything is sent.
-        </p>
 
         {/* What you get — 2x2 grid */}
         <div className="mb-10">
@@ -103,27 +113,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Compare section */}
-        <div className="mb-10">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-widest text-white/50">
-            Compare your setups
-          </h2>
-          <p className="mb-4 text-sm text-white/40">
-            See how your AI workflow stacks up against a friend, coworker, or rival.
-            One person creates, the other joins.
-          </p>
-          <div className="mb-2 rounded-lg border border-white/10 bg-white/5 p-4 font-mono text-xs leading-relaxed">
-            <span className="text-white/40">$</span>{" "}
-            <span className="text-indigo-300">
-              npx vibecheck-score --deep --submit --compare create
-            </span>
-          </div>
-          <p className="mb-1 text-xs text-white/40">
-            Creates a 6-character code. Share it, they run with{" "}
-            <code className="text-white/50">--compare &lt;code&gt;</code>, then both visit the
-            comparison page.
-          </p>
-        </div>
+        {/* Compare and submit are discoverable from terminal output */}
 
         <a
           href="/result/demo"

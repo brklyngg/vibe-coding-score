@@ -132,6 +132,7 @@ async function main(): Promise<void> {
   }
 
   // --merge: fold in detections from an external scan
+  let mergeCount = 0;
   if (values.merge) {
     try {
       const external = JSON.parse(readFileSync(values.merge, "utf-8")) as ProbeResult;
@@ -139,6 +140,7 @@ async function main(): Promise<void> {
         if (!seen.has(d.id)) {
           seen.add(d.id);
           detections.push(d);
+          mergeCount++;
         }
       }
     } catch (err) {
@@ -162,13 +164,35 @@ async function main(): Promise<void> {
   if (isJson) {
     console.log(JSON.stringify(result, null, 2));
   } else {
+    // Print merge count before results
+    if (values.merge && mergeCount > 0) {
+      console.log(`  ${chalk.green("✓")} Merged ${mergeCount} signals from ${values.merge}`);
+    }
+
     renderResults(score, detections, scanDurationMs);
 
-    // Hint about --merge when autonomy is empty and no merge was used
+    // Hint about --merge when autonomy is low and no merge was used
     const autonomyScore = score.categories.find((c) => c.category === "autonomy");
-    if (autonomyScore?.score === 0 && !values.merge) {
-      console.log("  \x1b[2m💡 Run agents on a separate machine? Export with --json there,");
-      console.log("  then pass it here with --merge <file> to combine scores.\x1b[0m\n");
+    const hasRemoteKeywords = detections.some((d) =>
+      d.id.includes("orchestrator") || d.source.includes("remote") || d.source.includes("tailscale")
+    );
+    if (!values.merge && (( autonomyScore?.score ?? 0) < 30 || hasRemoteKeywords)) {
+      const sep = "─".repeat(49);
+      console.log(`  ${chalk.gray(sep)}`);
+      console.log();
+      console.log(`  ${chalk.bold.white("SCAN YOUR AGENT'S MACHINE")}`);
+      console.log(`  ${chalk.gray("If your AI agent runs on a separate machine:")}`);
+      console.log();
+      console.log(`  ${chalk.gray("On the agent machine:")}`);
+      console.log(`    ${chalk.cyan("npx vibecheck-score --deep --json > agent-scan.json")}`);
+      console.log();
+      console.log(`  ${chalk.gray("Then merge here:")}`);
+      console.log(`    ${chalk.cyan("npx vibecheck-score --deep --merge agent-scan.json --submit")}`);
+      console.log();
+      console.log(`  ${chalk.gray('Or tell your AI assistant:')}`);
+      console.log(`    ${chalk.gray('"Run npx vibecheck-score --deep --json in my workspace')}`);
+      console.log(`    ${chalk.gray(' and save the output to agent-scan.json"')}`);
+      console.log();
     }
   }
 
@@ -271,8 +295,9 @@ async function main(): Promise<void> {
                 console.log(`  They run:`);
                 console.log(`    ${chalk.cyan(`npx vibecheck-score --deep --submit --compare ${cmpBody.code}`)}`);
                 console.log();
+                const compareUrl = cmpBody.url ?? `${submitUrl}/compare/${cmpBody.code}`;
                 console.log(`  Then both visit:`);
-                console.log(`    ${chalk.cyan(`${submitUrl}/compare/${cmpBody.code}`)}`);
+                console.log(`    ${chalk.cyan(compareUrl)}`);
                 console.log(`  ${chalk.gray(sep)}`);
                 console.log();
               } else if (compareAction === "join" && cmpBody.url) {

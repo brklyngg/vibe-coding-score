@@ -185,5 +185,32 @@
   { "id": "ufs:launchd:ai", "name": "AI launchd services", "category": "autonomy", "tier": "basic", "signals": ["launchctl AI"] },
 
   { "id": "ufs:monorepo:large", "name": "Large monorepo", "category": "ops", "tier": "basic", "signals": [">5 workspaces"] },
-  { "id": "ufs:monorepo:ai-consistent", "name": "Consistent AI config", "category": "tooling", "tier": "basic", "signals": ["CLAUDE.md across workspaces"] }
+  { "id": "ufs:monorepo:ai-consistent", "name": "Consistent AI config", "category": "tooling", "tier": "basic", "signals": ["CLAUDE.md across workspaces"] },
+
+  { "id": "subagents:extensive", "name": "5+ custom subagents", "category": "autonomy", "tier": "elite", "signals": [".claude/agents/ 5+"] },
+  { "id": "subagents:moderate", "name": "2+ custom subagents", "category": "autonomy", "tier": "advanced", "signals": [".claude/agents/ 2+"] },
+  { "id": "claude-skills:extensive", "name": "8+ custom Claude skills", "category": "autonomy", "tier": "elite", "signals": [".claude/skills/ 8+"] },
+  { "id": "claude-skills:moderate", "name": "3+ custom Claude skills", "category": "autonomy", "tier": "advanced", "signals": [".claude/skills/ 3+"] },
+  { "id": "claude-commands:extensive", "name": "8+ custom commands", "category": "tooling", "tier": "advanced", "signals": [".claude/commands/ 8+"] },
+  { "id": "claude-commands:moderate", "name": "3+ custom commands", "category": "tooling", "tier": "intermediate", "signals": [".claude/commands/ 3+"] },
+
+  { "id": "cron-scheduler:heavy", "name": "Heavy cron scheduling", "category": "autonomy", "tier": "elite", "signals": ["crontab 5+ AI entries"] },
+
+  { "id": "ufs:openclaw-skills:many", "name": "skills/ >9 entries", "category": "autonomy", "tier": "elite", "signals": ["skills/ 10+"] },
+  { "id": "ufs:openclaw-skills:some", "name": "skills/ >2 entries", "category": "autonomy", "tier": "advanced", "signals": ["skills/ 3+"] },
+  { "id": "ufs:sops-dir:exists", "name": "SOPs directory", "category": "ops", "tier": "intermediate", "signals": ["sops/"] },
+  { "id": "ufs:kanban:exists", "name": "Kanban directory", "category": "ops", "tier": "advanced", "signals": ["kanban/"] },
+  { "id": "ufs:identity-md:exists", "name": "IDENTITY.md", "category": "continuity", "tier": "intermediate", "signals": ["IDENTITY.md"] },
+  { "id": "ufs:tools-md:rich", "name": "TOOLS.md rich", "category": "tooling", "tier": "intermediate", "signals": ["TOOLS.md >30 lines"] },
+  { "id": "ufs:tools-md:exists", "name": "TOOLS.md", "category": "tooling", "tier": "basic", "signals": ["TOOLS.md"] },
+  { "id": "ufs:obsidian-vault:exists", "name": "Obsidian vault", "category": "continuity", "tier": "advanced", "signals": ["obsidian-vault/"] },
+  { "id": "ufs:scripts-dir:many", "name": "scripts/ >4 entries", "category": "ops", "tier": "intermediate", "signals": ["scripts/ 5+"] },
+  { "id": "ufs:avatars:exists", "name": "Avatars directory", "category": "social", "tier": "basic", "signals": ["avatars/"] },
+
+  { "id": "pattern:learning-loop", "name": "Learning Loop", "category": "continuity", "tier": "elite", "signals": ["MEMORY.md + memory/"] },
+  { "id": "pattern:learning-loop:ops", "name": "Learning Loop ops", "category": "ops", "tier": "advanced", "signals": ["MEMORY.md + memory/ ops"] },
+  { "id": "pattern:distributed-rig", "name": "Distributed Rig", "category": "autonomy", "tier": "elite", "signals": ["TOOLS.md + skills/"] },
+  { "id": "pattern:distributed-rig:ops", "name": "Distributed Rig ops", "category": "ops", "tier": "advanced", "signals": ["TOOLS.md + skills/ ops"] },
+  { "id": "pattern:full-agent-stack", "name": "Full Agent Stack", "category": "autonomy", "tier": "elite", "signals": ["AGENTS.md + SOUL.md"] },
+  { "id": "pattern:full-agent-stack:continuity", "name": "Full Agent Stack continuity", "category": "continuity", "tier": "elite", "signals": ["AGENTS.md + SOUL.md continuity"] }
 ]

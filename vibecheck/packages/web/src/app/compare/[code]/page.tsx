@@ -110,11 +110,25 @@ export default async function ComparePage({ params }: PageProps) {
   const comparison = await getComparison(code);
   if (!comparison) notFound();
 
+  const hero = (
+    <div className="mb-8 text-center">
+      <p className="text-4xl tracking-widest">
+        <span className="inline-block -scale-x-100">🕵️</span>
+        <span className="mx-4 text-white/20">vs</span>
+        <span>🕵️</span>
+      </p>
+      <p className="mt-2 text-xs tracking-widest text-white/30">
+        Open your coat. Show your stack.
+      </p>
+    </div>
+  );
+
   // --- Waiting state ---
   if (!comparison.handle_b) {
     return (
       <main className="mx-auto max-w-2xl px-6 py-16 text-center">
         <RefreshTimer intervalMs={15000} />
+        {hero}
         <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-indigo-400">
           Compare Mode
         </p>
@@ -185,6 +199,7 @@ export default async function ComparePage({ params }: PageProps) {
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-12">
+      {hero}
       {/* 1. Identity cards */}
       <section className="mb-10 grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="rounded-xl border border-indigo-400/30 bg-indigo-400/5 p-5">

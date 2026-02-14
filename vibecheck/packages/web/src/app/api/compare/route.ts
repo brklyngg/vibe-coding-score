@@ -64,7 +64,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ code: newCode });
+    const host =
+      process.env.VERCEL_PROJECT_PRODUCTION_URL ??
+      request.headers.get("host") ??
+      "vibecheck-brklyngg.vercel.app";
+    const proto = host.includes("localhost") ? "http" : "https";
+
+    return NextResponse.json({
+      code: newCode,
+      url: `${proto}://${host}/compare/${newCode}`,
+    });
   }
 
   if (action === "join") {

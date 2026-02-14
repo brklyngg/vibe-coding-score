@@ -248,6 +248,55 @@ const CHECKS: ConfigEntry[] = [
   // LICENSE
   { id: "ufs:license:exists", artifact: "LICENSE", category: "social", tier: "basic", points: 3, signal: "LICENSE file", check: "exists", scope: ["project"] },
 
+  // ── Agent Infrastructure (OpenClaw / Power-User) ──────────────────────
+
+  { id: "ufs:openclaw-skills:many", artifact: "skills/", category: "autonomy", tier: "elite", points: 20, signal: "skills/ >9 entries", check: "dirChildren", threshold: 9, scope: ["project"] },
+  { id: "ufs:openclaw-skills:some", artifact: "skills/", category: "autonomy", tier: "advanced", points: 10, signal: "skills/ >2 entries", check: "dirChildren", threshold: 2, scope: ["project"] },
+  { id: "ufs:sops-dir:exists", artifact: "sops/", category: "ops", tier: "intermediate", points: 10, signal: "sops/ directory", check: "exists", scope: ["project"] },
+  { id: "ufs:kanban:exists", artifact: "kanban/", category: "ops", tier: "advanced", points: 15, signal: "kanban/ directory", check: "exists", scope: ["project"] },
+  { id: "ufs:identity-md:exists", artifact: "IDENTITY.md", category: "continuity", tier: "intermediate", points: 8, signal: "IDENTITY.md exists", check: "exists", scope: ["project"] },
+  { id: "ufs:tools-md:rich", artifact: "TOOLS.md", category: "tooling", tier: "intermediate", points: 8, signal: "TOOLS.md >30 lines", check: "lineCount", threshold: 30, scope: ["project"] },
+  { id: "ufs:tools-md:exists", artifact: "TOOLS.md", category: "tooling", tier: "basic", points: 3, signal: "TOOLS.md exists", check: "exists", scope: ["project"] },
+  { id: "ufs:obsidian-vault:exists", artifact: "obsidian-vault/", category: "continuity", tier: "advanced", points: 15, signal: "obsidian-vault/ directory", check: "exists", scope: ["project"] },
+  { id: "ufs:scripts-dir:many", artifact: "scripts/", category: "ops", tier: "intermediate", points: 10, signal: "scripts/ >4 entries", check: "dirChildren", threshold: 4, scope: ["project"] },
+  { id: "ufs:avatars:exists", artifact: "avatars/", category: "social", tier: "basic", points: 3, signal: "avatars/ directory", check: "exists", scope: ["project"] },
+
+  // ── Pattern Bonuses ──────────────────────────────────────────────────
+
+  {
+    emissions: [
+      { id: "pattern:learning-loop", category: "continuity", tier: "elite", points: 20, signal: "Learning Loop (MEMORY.md + memory/)" },
+      { id: "pattern:learning-loop:ops", category: "ops", tier: "advanced", points: 10, signal: "Learning Loop ops maturity" },
+    ],
+    artifact: "MEMORY.md",
+    check: "grepKeywords",
+    keywords: ["daily", "curated", "active-work", "lesson"],
+    threshold: 50,
+    dependsOn: "memory/",
+    scope: ["project"],
+  },
+  {
+    emissions: [
+      { id: "pattern:distributed-rig", category: "autonomy", tier: "elite", points: 20, signal: "Distributed Rig (TOOLS.md + skills/)" },
+      { id: "pattern:distributed-rig:ops", category: "ops", tier: "advanced", points: 10, signal: "Distributed Rig ops maturity" },
+    ],
+    artifact: "TOOLS.md",
+    check: "grepKeywords",
+    keywords: ["tailscale", "ssh", "mac mini", "VPN", "remote", "machine"],
+    dependsOn: "skills/",
+    scope: ["project"],
+  },
+  {
+    emissions: [
+      { id: "pattern:full-agent-stack", category: "autonomy", tier: "elite", points: 25, signal: "Full Agent Stack (AGENTS.md + SOUL.md)" },
+      { id: "pattern:full-agent-stack:continuity", category: "continuity", tier: "elite", points: 15, signal: "Full Agent Stack continuity" },
+    ],
+    artifact: "AGENTS.md",
+    check: "exists",
+    dependsOn: "SOUL.md",
+    scope: ["project"],
+  },
+
   // ── Security ───────────────────────────────────────────────────────────
 
   // Canary keywords in agent config
@@ -482,6 +531,12 @@ export class UniversalFileScanner implements Scanner {
               });
             }
             continue;
+          }
+
+          // dependsOn: skip if dependency artifact doesn't exist
+          if (entry.dependsOn) {
+            const depExists = await fileExists(join(basePath, entry.dependsOn));
+            if (!depExists) continue;
           }
 
           const pass = await runCheck(entry, basePath);

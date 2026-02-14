@@ -15,8 +15,8 @@ import {
   commentaryForScore,
 } from "./narrative.js";
 
-const HEAVY_SEP = "━".repeat(43);
-const LIGHT_SEP = "─".repeat(42);
+const HEAVY_SEP = "━".repeat(53);
+const LIGHT_SEP = "─".repeat(52);
 const INDENT = "  ";
 
 function scoreColor(score: number): (text: string) => string {
@@ -50,11 +50,11 @@ function renderArchetypeBox(typeCode: string): string {
   const meanings1 = `${LETTER_MEANINGS[keys[0]][typeCode[0] === "M" ? 0 : 1]} · ${LETTER_MEANINGS[keys[1]][typeCode[1] === "A" ? 0 : 1]}`;
   const meanings2 = `${LETTER_MEANINGS[keys[2]][typeCode[2] === "R" ? 0 : 1]} · ${LETTER_MEANINGS[keys[3]][typeCode[3] === "D" ? 0 : 1]}`;
 
-  // Truncate description to fit in box (max 39 chars inner width)
-  const maxDesc = 39;
+  // Truncate description to fit in box (max 49 chars inner width)
+  const maxDesc = 49;
   const truncDesc = desc.length > maxDesc ? desc.slice(0, maxDesc - 1) + "…" : desc;
 
-  const boxW = 43;
+  const boxW = 53;
   const innerW = boxW - 4; // "│ " + " │"
   const pad = (s: string) => {
     const plain = stripAnsi(s);
@@ -107,6 +107,44 @@ function renderTaxonomyTable(
   const scanTime = durationMs ? ` · scanned in ${(durationMs / 1000).toFixed(1)}s` : "";
   lines.push(chalk.gray(`${INDENT}  ${detections.length} signals · ${categoryCount} categories${scanTime}`));
 
+  return lines.join("\n");
+}
+
+function renderKeyMechanisms(detections: Detection[]): string {
+  const lines: string[] = [];
+
+  // Named mechanisms: detections with details.names
+  const named = detections.filter(
+    (d) => d.details?.names && Array.isArray(d.details.names) && (d.details.names as string[]).length > 0
+  );
+
+  // Pattern bonuses: id starts with "pattern:"
+  const patterns = detections.filter((d) => d.id.startsWith("pattern:"));
+
+  if (named.length === 0 && patterns.length === 0) return "";
+
+  lines.push(`${INDENT}${chalk.bold.white("KEY MECHANISMS")}`);
+  lines.push(`${INDENT}${chalk.gray(LIGHT_SEP)}`);
+  lines.push("");
+
+  for (const d of named) {
+    const names = d.details!.names as string[];
+    const maxShow = 6;
+    const shown = names.slice(0, maxShow).join(", ");
+    const more = names.length > maxShow ? ` +${names.length - maxShow} more` : "";
+    lines.push(`${INDENT}  ${chalk.white(d.name)}: ${chalk.gray(shown + more)}`);
+  }
+
+  // Deduplicate patterns — only show the primary emission (not :ops, :continuity suffixes)
+  const seenPatterns = new Set<string>();
+  for (const d of patterns) {
+    const base = d.id.includes(":") ? d.id.split(":").slice(0, 2).join(":") : d.id;
+    if (seenPatterns.has(base)) continue;
+    seenPatterns.add(base);
+    lines.push(`${INDENT}  ${chalk.yellow("★")} ${chalk.white(d.name)}`);
+  }
+
+  lines.push("");
   return lines.join("\n");
 }
 
@@ -172,7 +210,7 @@ export function renderResults(
     const filled = Math.round(s / 10);
     const empty = 10 - filled;
     const bar = scoreColor(s)("█".repeat(filled)) + chalk.gray("░".repeat(empty));
-    const scoreStr = scoreColor(s)(String(s).padStart(3));
+    const scoreStr = chalk.bold.white(String(s).padStart(3));
     console.log(`${INDENT}  ${label}  ${bar}  ${scoreStr}`);
   }
   console.log();
@@ -187,6 +225,12 @@ export function renderResults(
   console.log();
   console.log(renderTaxonomyTable(detections, durationMs));
   console.log();
+
+  // 7b. Key mechanisms (named agents/skills/commands + pattern bonuses)
+  const keyMech = renderKeyMechanisms(detections);
+  if (keyMech) {
+    console.log(keyMech);
+  }
 
   // 8. GROWTH AREAS — up to 3 weakest categories with commentary
   const weakest = [...score.categories]

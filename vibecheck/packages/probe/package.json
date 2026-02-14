@@ -1,6 +1,6 @@
 {
   "name": "vibecheck-score",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Deep scan your AI coding setup — models, agents, MCP servers, memory, security, deploy pipeline",
   "type": "module",
   "bin": {
