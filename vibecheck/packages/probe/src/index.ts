@@ -201,6 +201,28 @@ async function main(): Promise<void> {
     }
 
     renderResults(score, detections, scanDurationMs);
+
+    // Auto-submit merged results so Machine A can poll for them
+    if (values["merge-from"]) {
+      const base = values["merge-from"].slice(0, 31);
+      const mergedHandle = `${base}-merged`;
+      const autoSubmit = await submitResult({
+        result,
+        handle: mergedHandle,
+        url,
+        skipConfirm: true,
+        silent: true,
+      });
+
+      if (autoSubmit.success) {
+        console.log(`  ${chalk.green("✓")} Combined results uploaded as ${chalk.bold(mergedHandle)}`);
+        console.log(`    ${chalk.gray("Your main machine will pick these up automatically.")}`);
+        console.log();
+      } else {
+        console.log(`  ${chalk.yellow("⚠")} Could not upload combined results: ${autoSubmit.error}`);
+        console.log();
+      }
+    }
   }
 
   // --compare requires --submit
@@ -285,7 +307,7 @@ async function main(): Promise<void> {
   }
 
   // Interactive post-scan flow (only when no flags were used)
-  if (!isJson && !values.yes && !values.compare) {
+  if (!isJson && !values.yes && !values.compare && !values["merge-from"]) {
     await postScanFlow(result, url);
   }
 }

@@ -116,11 +116,11 @@ Terminal output: top separator → VIBE CODER SCORE header → level/tier + tagl
 ## Post-Scan Flow
 
 After every interactive scan (non-JSON, non-flag), a 3-option menu appears:
-1. **Combine with another machine** — submits current scan, prints `--merge-from <handle>` command for the other machine
+1. **I also use AI tools on another machine** — submits current scan, prints `--merge-from <handle>` command, then polls for merged results from Machine B (5s interval, 5min timeout, Enter to skip). On success, renders combined results and offers compare option
 2. **Compare with a friend** — submits current scan, asks for existing code or creates new comparison
 3. **Done** (default on Enter)
 
-Guards: skipped when `--json`, `--submit`, `--yes`, `--compare`, or non-TTY stdin.
+Guards: skipped when `--json`, `--submit`, `--yes`, `--compare`, `--merge-from`, or non-TTY stdin.
 
 The `flows/` module contains extracted logic: `submitResult()`, `compareApi()`, `interactiveMerge()`, `interactiveCompare()`, `fetchRemoteDetections()`, `postScanFlow()`. The `--submit` flag path in `index.ts` calls these functions directly (separate entry point from the interactive menu).
 
@@ -136,6 +136,8 @@ Two-person comparison flow via `--compare` flag (requires `--submit`):
 ## Multi-Machine Merge
 
 Two merge modes: `--merge <file>` (local JSON) and `--merge-from <handle>` (fetches from `/api/result/[handle]/detections`). Mutually exclusive. Both dedup by detection ID into the existing scan results.
+
+**Bidirectional round-trip:** Machine A submits its scan and polls for `{handle}-merged`. Machine B runs `--merge-from {handle}`, computes combined results, renders them, and auto-submits as `{handle}-merged` (handle capped to 31 chars + `-merged` suffix). Machine A's poll detects the upload, renders the combined score, and offers a compare option. Uses existing `/api/submit` and `/api/result/[handle]/detections` endpoints — no new API routes needed.
 
 Registry is a flat JSON array (171 entries) — editable without recompilation. The repositories scanner walks sub-projects up to 2 levels deep.
 

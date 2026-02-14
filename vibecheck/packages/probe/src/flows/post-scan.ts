@@ -19,7 +19,8 @@ export async function postScanFlow(
     console.log();
     console.log(`  ${chalk.bold.white("WHAT'S NEXT?")}`);
     console.log(`  ${chalk.gray(sep)}`);
-    console.log(`  ${chalk.white("[1]")} Combine with another machine`);
+    console.log(`  ${chalk.white("[1]")} I also use AI tools on another machine`);
+    console.log(`       ${chalk.gray("Scan both, get one combined score")}`);
     console.log(`  ${chalk.white("[2]")} Compare with a friend`);
     console.log(`  ${chalk.white("[3]")} Done ${chalk.gray("(or press Enter)")}`);
     console.log(`  ${chalk.gray(sep)}`);
