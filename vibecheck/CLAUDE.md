@@ -15,10 +15,16 @@ vibecheck/
 │       └── engine.ts              # computeScore, computeCategoryScores, computeLevel, assignTier, computeTypeCode, evaluatePioneer
 ├── packages/probe/     # npm: vibecheck-score (TypeScript CLI)
 │   └── src/
-│       ├── index.ts               # CLI entry point (--help, --json, --shallow, --merge, --submit, --compare)
+│       ├── index.ts               # CLI entry point (--help, --json, --shallow, --merge, --merge-from, --submit, --compare)
 │       ├── types.ts               # Re-export shim → @vibe/scoring
 │       ├── scoring/engine.ts      # Re-export shim → @vibe/scoring
 │       ├── scoring/tiers.ts       # tier lookup helpers
+│       ├── flows/
+│       │   ├── index.ts           # Barrel re-exports
+│       │   ├── submit.ts          # submitResult() — token management, confirmation, POST to /api/submit
+│       │   ├── compare.ts         # compareApi() + interactiveCompare() — compare creation/join
+│       │   ├── merge.ts           # interactiveMerge() + fetchRemoteDetections() — multi-machine merge
+│       │   └── post-scan.ts       # postScanFlow() — 3-option interactive menu after every scan
 │       ├── taxonomy/
 │       │   ├── registry.json      # 171-entry lookup table (id, name, category, tier, signals)
 │       │   └── classifier.ts      # RawFinding → Detection[] via registry lookup
@@ -46,6 +52,7 @@ vibecheck/
         │   ├── api/og/[handle]/route.tsx  # Satori OG image generation
         │   ├── api/submit/route.ts        # Submit probe results
         │   ├── api/compare/route.ts       # Create/join comparisons
+        │   ├── api/result/[handle]/detections/route.ts  # Public GET: return detections for a handle
         │   ├── result/[handle]/page.tsx   # Individual result page
         │   └── compare/[code]/page.tsx    # Side-by-side comparison (waiting + complete states)
         ├── lib/
@@ -73,7 +80,8 @@ npm run dev:web         # Next.js dev server
 node packages/probe/dist/index.js --help
 node packages/probe/dist/index.js --json         # JSON output (ProbeResult shape)
 node packages/probe/dist/index.js --shallow       # Skip global checks (crontab, launchd) for faster scan
-node packages/probe/dist/index.js --merge f.json  # Merge detections from another scan
+node packages/probe/dist/index.js --merge f.json       # Merge detections from a local JSON file
+node packages/probe/dist/index.js --merge-from handle  # Fetch & merge detections from a submitted handle
 ```
 
 ## Package Dependencies
@@ -105,6 +113,17 @@ After all scanners complete, artifact-level dedup suppresses v2 detections when 
 
 Terminal output: top separator → VIBE CODER SCORE header → level/tier + tagline → narrative → category bar chart → WHAT WE FOUND (taxonomy table with `*` innovation markers) → key mechanisms → pioneer badge → GROWTH AREAS (commentary) → next tier → bottom separator. Type code is computed for JSON output but not displayed in terminal.
 
+## Post-Scan Flow
+
+After every interactive scan (non-JSON, non-flag), a 3-option menu appears:
+1. **Combine with another machine** — submits current scan, prints `--merge-from <handle>` command for the other machine
+2. **Compare with a friend** — submits current scan, asks for existing code or creates new comparison
+3. **Done** (default on Enter)
+
+Guards: skipped when `--json`, `--submit`, `--yes`, `--compare`, or non-TTY stdin.
+
+The `flows/` module contains extracted logic: `submitResult()`, `compareApi()`, `interactiveMerge()`, `interactiveCompare()`, `fetchRemoteDetections()`, `postScanFlow()`. The `--submit` flag path in `index.ts` calls these functions directly (separate entry point from the interactive menu).
+
 ## Compare Mode
 
 Two-person comparison flow via `--compare` flag (requires `--submit`):
@@ -114,7 +133,11 @@ Two-person comparison flow via `--compare` flag (requires `--submit`):
 - Web: `/compare/[code]` page — waiting state with 15s auto-refresh (`RefreshTimer`), complete state with identity cards, dimension bars (indigo/emerald), divergence analysis, unique detections comparison
 - Handle auto-generated as 8-char hex if `--handle` omitted
 
-Registry is a flat JSON array (171 entries) — editable without recompilation. The repositories scanner walks sub-projects up to 2 levels deep. The `--merge` flag lets you combine detections from scans run on different machines. No network calls (privacy-first); social scanner is local-only for v1.
+## Multi-Machine Merge
+
+Two merge modes: `--merge <file>` (local JSON) and `--merge-from <handle>` (fetches from `/api/result/[handle]/detections`). Mutually exclusive. Both dedup by detection ID into the existing scan results.
+
+Registry is a flat JSON array (171 entries) — editable without recompilation. The repositories scanner walks sub-projects up to 2 levels deep.
 
 Narrative commentary lives in `packages/probe/src/output/narrative.ts`. Archetype names/descriptions are defined there and also in `packages/web/src/lib/narrative-templates.ts` (web uses them for satori cards and result pages).
 
