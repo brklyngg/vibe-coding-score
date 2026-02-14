@@ -1,5 +1,5 @@
 import type { Scanner } from "./index.js";
-import type { Detection, ScanResult, TaxonomyCategory, DetectionTier } from "../types.js";
+import type { Detection, ScanResult, TaxonomyCategory, DetectionTier } from "@vibe/scoring";
 import { shellOutput } from "./utils.js";
 
 // ── Internal Types ──────────────────────────────────────────────────

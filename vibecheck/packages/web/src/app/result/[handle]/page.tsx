@@ -5,12 +5,12 @@ import type {
   Detection,
   TaxonomyCategory,
   ProbeResult,
-} from "@/lib/types";
+} from "@vibe/scoring";
 import {
   TAXONOMY_CATEGORIES,
   CATEGORY_LABELS,
   CATEGORY_EMOJI,
-} from "@/lib/types";
+} from "@vibe/scoring";
 import {
   TIER_TAGLINES,
   ARCHETYPE_NAMES,

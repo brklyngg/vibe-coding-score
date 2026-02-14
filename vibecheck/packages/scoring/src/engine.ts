@@ -1,5 +1,3 @@
-// Duplicated from probe/src/scoring/engine.ts — extract to shared package when a third consumer appears
-
 import {
   type Detection,
   type CategoryScore,
@@ -12,7 +10,7 @@ import {
   CATEGORY_WEIGHTS,
   TIER_POINTS,
   TIER_TITLES,
-} from "./types";
+} from "./types.js";
 
 export function computeCategoryScores(detections: Detection[]): CategoryScore[] {
   return TAXONOMY_CATEGORIES.map((category) => {
@@ -26,12 +24,13 @@ export function computeCategoryScores(detections: Detection[]): CategoryScore[] 
     const tierRank = { basic: 0, intermediate: 1, advanced: 2, elite: 3 };
 
     for (const d of categoryDetections) {
-      raw += TIER_POINTS[d.tier];
+      raw += d.points ?? TIER_POINTS[d.tier];
       if (tierRank[d.tier] > tierRank[topTier]) {
         topTier = d.tier;
       }
     }
 
+    // Innovation bonus: +3 per high-confidence, +1 per medium-confidence unknown
     for (const d of categoryDetections) {
       if (d.taxonomyMatch === null) {
         if (d.confidence === "high") raw += 3;
@@ -75,10 +74,17 @@ export function computeTypeCode(categories: CategoryScore[]): TypeCode {
   const autonomy = scoreOf("autonomy") >= 50 ? "A" : "G";
   const ship = scoreOf("ship") >= 50 ? "R" : "C";
 
-  const avgDepth = (scoreOf("tooling") + scoreOf("continuity") + scoreOf("ops")) / 3;
+  const avgDepth =
+    (scoreOf("tooling") + scoreOf("continuity") + scoreOf("ops")) / 3;
   const depth = avgDepth >= 50 ? "D" : "L";
 
-  return { code: `${intelligence}${autonomy}${ship}${depth}`, intelligence, autonomy, ship, depth };
+  return {
+    code: `${intelligence}${autonomy}${ship}${depth}`,
+    intelligence,
+    autonomy,
+    ship,
+    depth,
+  };
 }
 
 export function evaluatePioneer(detections: Detection[]): PioneerStatus {

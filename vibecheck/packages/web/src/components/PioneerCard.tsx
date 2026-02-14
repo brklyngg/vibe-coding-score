@@ -1,6 +1,6 @@
 "use client";
 
-import type { ScoreResult } from "@/lib/types";
+import type { ScoreResult } from "@vibe/scoring";
 
 interface PioneerCardProps {
   score: ScoreResult;

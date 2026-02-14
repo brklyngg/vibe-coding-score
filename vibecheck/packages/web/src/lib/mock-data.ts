@@ -1,5 +1,5 @@
-import type { Detection, ScoreResult, ProbeResult } from "./types";
-import { computeScore } from "./scoring";
+import type { Detection, ScoreResult, ProbeResult } from "@vibe/scoring";
+import { computeScore } from "@vibe/scoring";
 
 // Realistic mock detections for a sample Level 67 Architect setup
 export const MOCK_DETECTIONS: Detection[] = [
@@ -291,6 +291,7 @@ export const MOCK_RESULT: ProbeResult = {
   version: "0.3.0",
   timestamp: "2026-02-14T00:00:00.000Z",
   platform: "darwin",
+  scanResults: [],
   detections: MOCK_DETECTIONS,
   score: MOCK_SCORE,
 };

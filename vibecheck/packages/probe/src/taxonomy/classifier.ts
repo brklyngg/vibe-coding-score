@@ -2,7 +2,7 @@ import type {
   Detection,
   TaxonomyCategory,
   DetectionTier,
-} from "../types.js";
+} from "@vibe/scoring";
 import registryData from "./registry.json" with { type: "json" };
 
 export interface RawFinding {
