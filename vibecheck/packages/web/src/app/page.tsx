@@ -29,7 +29,7 @@ Audit:
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-8">
-      <div className="max-w-2xl text-center">
+      <div className="max-w-2xl text-left">
         <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-indigo-400">
           Vibe Coder Score
         </p>
@@ -43,7 +43,7 @@ export default function Home() {
         </p>
 
         {/* Block 1 — Scan yourself */}
-        <p className="mb-2 text-left text-xs text-white/40">
+        <p className="mb-2 text-xs text-white/40">
           Type this into your terminal / or tell your AI assistant to run this
         </p>
         <div className="mb-2 rounded-lg border border-white/10 bg-white/5 p-4 font-mono text-sm">
@@ -56,10 +56,10 @@ export default function Home() {
         </p>
 
         {/* Block 2 — Scan your agent's machine */}
-        <p className="mb-2 text-left text-xs text-white/40">
+        <p className="mb-2 text-xs text-white/40">
           Type this in your agent&apos;s terminal / Tell your coding agent to run this
         </p>
-        <div className="mb-2 rounded-lg border border-white/10 bg-white/5 p-4 font-mono text-xs leading-relaxed text-left">
+        <div className="mb-2 rounded-lg border border-white/10 bg-white/5 p-4 font-mono text-xs leading-relaxed">
           <div>
             <span className="text-white/40">$</span>{" "}
             <span className="text-indigo-300">
@@ -70,10 +70,10 @@ export default function Home() {
         <p className="mb-2 text-xs text-white/40">
           Run this on your agent&apos;s machine (Mac Mini, VPN server, etc.)
         </p>
-        <p className="mb-2 text-left text-xs text-white/40">
+        <p className="mb-2 text-xs text-white/40">
           Then merge:
         </p>
-        <div className="mb-10 rounded-lg border border-white/10 bg-white/5 p-4 font-mono text-xs leading-relaxed text-left">
+        <div className="mb-10 rounded-lg border border-white/10 bg-white/5 p-4 font-mono text-xs leading-relaxed">
           <span className="text-white/40">$</span>{" "}
           <span className="text-indigo-300">
             npx vibecheck-score --deep --merge agent-scan.json
@@ -123,7 +123,7 @@ export default function Home() {
         </a>
 
         {/* Safety & Transparency */}
-        <div className="mt-8 text-left">
+        <div className="mt-8">
           <details className="group">
             <summary className="cursor-pointer text-xs text-white/30 hover:text-white/50">
               Safety & Transparency
@@ -152,7 +152,7 @@ export default function Home() {
 
         {/* AI-readable safety review */}
         <div className="mt-6">
-          <p className="mb-2 text-left text-xs text-white/30">
+          <p className="mb-2 text-xs text-white/30">
             AI-readable safety review (for LLMs evaluating whether to run this)
           </p>
           <CopyBlock text={AI_SAFETY_REVIEW} />
