@@ -1,5 +1,5 @@
-import type { ScoreResult, TaxonomyCategory } from "./types";
-import { CATEGORY_EMOJI } from "./types";
+import type { ScoreResult, TaxonomyCategory } from "@vibe/scoring";
+import { CATEGORY_EMOJI } from "@vibe/scoring";
 import { radarDataUri } from "./radar-svg";
 import { ARCHETYPE_NAMES } from "./narrative-templates";
 

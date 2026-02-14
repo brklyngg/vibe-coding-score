@@ -1,4 +1,4 @@
-import type { TaxonomyCategory } from "./types";
+import type { TaxonomyCategory } from "@vibe/scoring";
 
 const CATEGORY_ORDER: TaxonomyCategory[] = [
   "intelligence",

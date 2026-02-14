@@ -1,4 +1,4 @@
-import type { Detection, ScanResult } from "../types.js";
+import type { Detection, ScanResult } from "@vibe/scoring";
 
 export interface Scanner {
   name: string;

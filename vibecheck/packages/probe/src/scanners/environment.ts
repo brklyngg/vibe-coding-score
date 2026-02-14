@@ -1,4 +1,4 @@
-import type { ScanResult } from "../types.js";
+import type { ScanResult } from "@vibe/scoring";
 import type { Scanner } from "./index.js";
 import { classify, type RawFinding } from "../taxonomy/classifier.js";
 import { readFileIfExists, shellOutput } from "./utils.js";

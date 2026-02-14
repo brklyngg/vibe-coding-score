@@ -1,9 +1,5 @@
-// TODO: extract to @vibecheck/core — duplicated from packages/web/src/lib/narrative-templates.ts
-// Types and scoring are already duplicated between probe and web.
-// When a third consumer appears, extract the shared package.
-
-import type { ScoreResult, Detection, TaxonomyCategory } from "../types.js";
-import { CATEGORY_LABELS } from "../types.js";
+import type { ScoreResult, Detection, TaxonomyCategory } from "@vibe/scoring";
+import { CATEGORY_LABELS } from "@vibe/scoring";
 
 const DIMENSION_COMMENTARY: Record<
   TaxonomyCategory,
@@ -89,13 +85,6 @@ export const ARCHETYPE_DESCRIPTIONS: Record<string, string> = {
   VGRL: "Fast, guided, rapid, light. Does more with less and ships it yesterday.",
   VGCD: "Velocity seeker who tinkers with deep tools under guided supervision.",
   VGCL: "Fast-moving, guided, cautious, and light. Just getting started, but moving quick.",
-};
-
-export const LETTER_MEANINGS: Record<string, [string, string]> = {
-  intelligence: ["M = Master strategist", "V = Velocity seeker"],
-  autonomy: ["A = Autonomous agents", "G = Guided agents"],
-  ship: ["R = Rapid shipper", "C = Cautious shipper"],
-  depth: ["D = Deep tooling", "L = Light tooling"],
 };
 
 const IMPROVEMENT_HINTS: Partial<Record<TaxonomyCategory, string>> = {

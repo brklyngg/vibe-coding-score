@@ -1,5 +1,3 @@
-// Duplicated from probe/src/types.ts — extract to shared package when a third consumer appears
-
 export const TAXONOMY_CATEGORIES = [
   "intelligence",
   "tooling",
@@ -62,13 +60,21 @@ export interface Detection {
   source: string;
   confidence: "high" | "medium" | "low";
   tier: DetectionTier;
-  taxonomyMatch: string | null;
+  taxonomyMatch: string | null; // null = innovation candidate
   details?: Record<string, unknown>;
+  points?: number; // exact point value (overrides tier-based points when present)
+  scanScope?: "project" | "workspace" | "global"; // where the detection was found
+}
+
+export interface ScanResult {
+  scanner: string;
+  detections: Detection[];
+  duration: number; // ms
 }
 
 export interface CategoryScore {
   category: TaxonomyCategory;
-  score: number;
+  score: number; // 0-100
   detectionCount: number;
   topTier: DetectionTier;
 }
@@ -88,11 +94,11 @@ export const TIER_TITLES = [
 export type TierTitle = (typeof TIER_TITLES)[number]["title"];
 
 export interface TypeCode {
-  code: string;
-  intelligence: "M" | "V";
-  autonomy: "A" | "G";
-  ship: "R" | "C";
-  depth: "D" | "L";
+  code: string; // e.g. "MARD"
+  intelligence: "M" | "V"; // Master strategist / Velocity seeker
+  autonomy: "A" | "G"; // Autonomous / Guided
+  ship: "R" | "C"; // Rapid / Cautious
+  depth: "D" | "L"; // Deep / Light
 }
 
 export interface PioneerStatus {
@@ -103,7 +109,7 @@ export interface PioneerStatus {
 }
 
 export interface ScoreResult {
-  level: number;
+  level: number; // 0-100
   categories: CategoryScore[];
   tier: { title: TierTitle; tagline: string };
   typeCode: TypeCode;
@@ -114,6 +120,7 @@ export interface ProbeResult {
   version: string;
   timestamp: string;
   platform: string;
+  scanResults: ScanResult[];
   detections: Detection[];
   score: ScoreResult;
 }

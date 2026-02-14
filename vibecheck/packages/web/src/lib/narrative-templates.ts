@@ -1,4 +1,4 @@
-import type { TierTitle } from "./types";
+import type { TierTitle } from "@vibe/scoring";
 
 // -- Tier taglines (from audio overview, validated by Gary) --
 

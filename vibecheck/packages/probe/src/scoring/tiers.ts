@@ -1,4 +1,4 @@
-import { TIER_TITLES, type TierTitle } from "../types.js";
+import { TIER_TITLES, type TierTitle } from "@vibe/scoring";
 
 export function getTierForLevel(level: number): { title: TierTitle; tagline: string } {
   for (const t of TIER_TITLES) {

@@ -1,7 +1,7 @@
 import { readdir, stat } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { homedir } from "node:os";
-import type { Detection, ScanResult, TaxonomyCategory, DetectionTier } from "../types.js";
+import type { Detection, ScanResult, TaxonomyCategory, DetectionTier } from "@vibe/scoring";
 import type { Scanner } from "./index.js";
 import { classify, type RawFinding } from "../taxonomy/classifier.js";
 import { fileExists, readFileIfExists, readJsonIfExists, shellOutput, expandHome } from "./utils.js";
