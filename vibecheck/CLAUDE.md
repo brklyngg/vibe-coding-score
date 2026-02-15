@@ -72,7 +72,7 @@ vibecheck/
 ```bash
 npm run build           # Build all three packages (scoring → probe → web)
 npm run build:scoring   # Build shared scoring package
-npm run build:probe     # TypeScript compile probe + copy registry.json to dist
+npm run build:probe     # esbuild bundle probe → single dist/index.js (zero runtime deps)
 npm run build:web       # Next.js production build
 npm run dev:web         # Next.js dev server
 
@@ -87,6 +87,8 @@ node packages/probe/dist/index.js --merge-from handle  # Fetch & merge detection
 ## Package Dependencies
 
 Both `probe` and `web` depend on `@vibe/scoring` (npm workspace link). Build order matters: scoring must build before probe and web. The root `build` script chains them correctly.
+
+**Probe build:** Uses esbuild (`build.mjs`) to bundle all dependencies — including `@vibe/scoring`, `chalk`, and `ora` — into a single `dist/index.js`. The published npm package has zero runtime dependencies. `@vibe/scoring` is a devDependency (needed at build time, inlined into the bundle).
 
 All types and scoring logic live in `@vibe/scoring`. Probe's `types.ts` and `scoring/engine.ts` are re-export shims for backward compatibility. Web imports directly from `@vibe/scoring`.
 
