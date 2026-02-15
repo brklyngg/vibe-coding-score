@@ -21,7 +21,8 @@ vibecheck/
 │       ├── scoring/tiers.ts       # tier lookup helpers
 │       ├── flows/
 │       │   ├── index.ts           # Barrel re-exports
-│       │   ├── submit.ts          # submitResult() — token management, confirmation, POST to /api/submit
+│       │   ├── submit.ts          # submitResult() — token management, sanitization, confirmation, POST to /api/submit
+│       │   ├── sanitize.ts        # sanitizeForSubmit() — whitelist layer that strips sensitive details before network calls
 │       │   ├── compare.ts         # compareApi() + interactiveCompare() — compare creation/join
 │       │   ├── merge.ts           # interactiveMerge() + fetchRemoteDetections() — multi-machine merge
 │       │   └── post-scan.ts       # postScanFlow() — 3-option interactive menu after every scan
@@ -34,7 +35,7 @@ vibecheck/
 │       │   ├── workspace.ts       # Monorepo detection + workspace discovery (2-level walk, cap 20)
 │       │   ├── universal-file.ts  # Config-driven UFS: ~50 checks, 6 check types, multi-category emissions, supersedes v2
 │       │   ├── git-history.ts     # Git log analysis: commit style, velocity, branches, test/doc ratios, time patterns
-│       │   ├── environment.ts     # API keys (.env + shell config), model routing, local models
+│       │   ├── environment.ts     # API keys (.env + shell config via grep), model routing, local models
 │       │   ├── mcp.ts             # MCP servers (Code + Desktop + project-scoped), CLI tools
 │       │   ├── agents.ts          # Subagents, hooks, AGENTS.md, SOUL.md, EVOLVE.md, skills, commands
 │       │   ├── orchestration.ts   # tmux, worktrees, orchestrator CLIs, crontab
@@ -114,6 +115,23 @@ After all scanners complete, artifact-level dedup suppresses v2 detections when 
 **UFS architecture:** One config-driven scanner with a typed array of ~50 checks and 6 check functions (`exists`, `lineCount`, `dirChildren`, `grepKeywords`, `jsonField`, `shell`, `testRatio`, `filePermission`). Checks are ordered highest-threshold-first per artifact; conditional chains emit only the highest match per (artifact, category) pair. Multi-category emissions let one artifact award points across multiple categories. Scopes (`project`/`workspace`/`global`) control where checks run; global scope runs by default (use `--shallow` to skip). `--deep` is kept as a silent no-op for backward compat.
 
 Terminal output: top separator → VIBE CODER SCORE header → level/tier + tagline → narrative → category bar chart → WHAT WE FOUND (taxonomy table with `*` innovation markers) → key mechanisms → pioneer badge → GROWTH AREAS (commentary) → next tier → bottom separator. Type code is computed for JSON output but not displayed in terminal.
+
+## Privacy & Security Architecture
+
+**Grep-over-readFile:** Scanners that check `.env`, shell configs (`~/.zshrc` etc.), and crontab use `shellOutput()` with `grep` commands instead of `readFileIfExists()`. Secret values never enter the Node process memory — only key name presence or match counts are captured.
+
+**Consent prompt:** First interactive run shows a disclosure of what will be scanned and writes `~/.vibecheck/consent` on acceptance. Skipped for `--json`, `--yes`, `--shallow`, and non-TTY stdin.
+
+**Submission sanitization:** `sanitizeForSubmit()` in `flows/sanitize.ts` runs inside `submitResult()` before any network call. It applies a whitelist approach:
+- `details` fields: only numeric keys (`count`, `ratio`, `commitsPerWeek`, etc.) and enum-like strings (`pattern`) pass through; everything else (names, aliases, plists, paths) is stripped
+- `source` fields: file paths like `~/.zshrc` are normalized to generic labels (`shell-config`, `agents-dir`, etc.)
+- `scanResults.detections`: emptied (only scanner name + duration sent)
+- `platform`: set to `"redacted"`
+- All 4 submit paths (--submit, --merge-from auto-submit, interactiveMerge, interactiveCompare) go through `submitResult()`, so sanitization is a single choke point
+
+**Note:** Stripping `details.names` means the KEY MECHANISMS section won't render on the web result page for submitted results. This is intentional — agent/skill names shouldn't be public. Local terminal output still shows full details.
+
+**Git history:** Only commit messages, author names, and timestamps are collected. Author/committer emails are not parsed.
 
 ## Post-Scan Flow
 
