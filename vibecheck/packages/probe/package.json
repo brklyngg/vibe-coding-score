@@ -1,20 +1,20 @@
 {
   "name": "vibecheck-score",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Deep scan your AI coding setup — models, agents, MCP servers, memory, security, deploy pipeline",
   "type": "module",
   "bin": {
     "vibecheck": "dist/index.js"
   },
   "files": [
-    "dist",
-    "src/taxonomy/registry.json"
+    "dist"
   ],
   "engines": {
     "node": ">=18.3.0"
   },
   "scripts": {
-    "build": "tsc && cp src/taxonomy/registry.json dist/taxonomy/registry.json",
+    "build": "node build.mjs",
+    "typecheck": "tsc --noEmit",
     "dev": "tsc --watch",
     "prepublishOnly": "npm run build"
   },
@@ -33,13 +33,12 @@
   ],
   "author": "Gary Gurevich",
   "license": "MIT",
-  "dependencies": {
-    "@vibe/scoring": "*",
-    "chalk": "^5.4.1",
-    "ora": "^8.1.1"
-  },
   "devDependencies": {
-    "typescript": "^5.7.3",
-    "@types/node": "^22.10.0"
+    "@vibe/scoring": "*",
+    "@types/node": "^22.10.0",
+    "chalk": "^5.4.1",
+    "esbuild": "^0.27.3",
+    "ora": "^8.1.1",
+    "typescript": "^5.7.3"
   }
 }
