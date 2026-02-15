@@ -116,7 +116,6 @@ export async function interactiveMerge(
   if (process.stdin.isTTY && process.stdin.setRawMode) {
     process.stdin.setRawMode(wasRaw ?? false);
   }
-  process.stdin.pause();
 
   spinner.stop();
 
