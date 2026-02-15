@@ -1,3 +1,8 @@
+// Privacy: This endpoint stores probe results in Supabase. No IP logging,
+// no analytics telemetry, no third-party tracking. The probe sanitizes
+// sensitive details (file paths, agent names, platform) before submission.
+// Source: https://github.com/<repo>/packages/web/src/app/api/submit/route.ts
+
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 

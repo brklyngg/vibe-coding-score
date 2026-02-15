@@ -1,7 +1,7 @@
 import type { ScanResult } from "@vibe/scoring";
 import type { Scanner } from "./index.js";
 import { classify, type RawFinding } from "../taxonomy/classifier.js";
-import { shellOutput, readJsonIfExists, readFileIfExists } from "./utils.js";
+import { shellOutput, readJsonIfExists } from "./utils.js";
 
 interface PackageJson {
   name?: string;
@@ -37,24 +37,22 @@ export class SocialScanner implements Scanner {
       });
     }
 
-    // Slack/Discord webhook patterns in configs
-    const configFiles = [
-      ".env",
-      ".env.local",
-      "package.json",
-    ];
-    for (const file of configFiles) {
-      const content = await readFileIfExists(file);
-      if (!content) continue;
-
-      if (/SLACK_WEBHOOK|slack.*webhook/i.test(content)) {
+    // Slack/Discord webhook patterns in .env files (grep, never load values)
+    for (const file of [".env", ".env.local"]) {
+      const slackHit = await shellOutput(
+        `grep -ciE "SLACK_WEBHOOK|slack.*webhook" ${file} 2>/dev/null`
+      );
+      if (parseInt(slackHit ?? "0") > 0) {
         findings.push({
           id: "slack-webhook",
           source: file,
           confidence: "medium",
         });
       }
-      if (/DISCORD_WEBHOOK|DISCORD_BOT_TOKEN|discord.*webhook/i.test(content)) {
+      const discordHit = await shellOutput(
+        `grep -ciE "DISCORD_WEBHOOK|DISCORD_BOT_TOKEN|discord.*webhook" ${file} 2>/dev/null`
+      );
+      if (parseInt(discordHit ?? "0") > 0) {
         findings.push({
           id: "discord-bot",
           source: file,

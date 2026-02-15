@@ -6,6 +6,7 @@ import {
   fileExists,
   readFileIfExists,
   readJsonIfExists,
+  shellOutput,
   expandHome,
 } from "./utils.js";
 
@@ -36,23 +37,16 @@ export class SecurityScanner implements Scanner {
       }
     }
 
-    // Environment variable secrets (just presence detection)
-    const shellFiles = [
-      "~/.zshrc",
-      "~/.bashrc",
-      "~/.zprofile",
-      "~/.bash_profile",
-    ];
-    for (const file of shellFiles) {
-      const content = await readFileIfExists(file);
-      if (content && /export\s+\w*(KEY|SECRET|TOKEN|PASSWORD)\w*\s*=/i.test(content)) {
-        findings.push({
-          id: "env-vars",
-          source: file,
-          confidence: "high",
-        });
-        break;
-      }
+    // Environment variable secrets (grep for presence, never load values)
+    const hit = await shellOutput(
+      `grep -lE "export\\s+\\w*(KEY|SECRET|TOKEN|PASSWORD)\\w*\\s*=" ~/.zshrc ~/.bashrc ~/.zprofile ~/.bash_profile 2>/dev/null`
+    );
+    if (hit) {
+      findings.push({
+        id: "env-vars",
+        source: "shell config",
+        confidence: "high",
+      });
     }
 
     // Agent permission scoping

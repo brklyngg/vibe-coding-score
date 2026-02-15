@@ -35,11 +35,34 @@ The probe runs 11 scanners in parallel, checking ~170 signals across 8 categorie
 | **Ops** | Task tracking, build scripts, monorepo tooling |
 | **Social** | Public repos, npm packages, webhooks |
 
-### What It Doesn't Do
+### Privacy & Security
 
-- **No network calls** during scanning (privacy-first). The only network call is `--submit`, which is opt-in.
-- **No file contents are uploaded.** Only detection metadata (tool name, category, confidence) is submitted.
-- **No secrets leave your machine.** API key checks only confirm presence, not values.
+**During scanning:**
+- **No network calls** during scanning. The only network call is `--submit`, which is opt-in.
+- **No file contents loaded into memory.** Shell config files (`.zshrc`, `.bashrc`, etc.) and `.env` files are scanned via `grep` — the probe checks for key *names* without ever reading values into the Node process.
+- **Crontab is grep-piped**, not dumped — only matching line counts are captured.
+- **Git author emails are not collected.** Only names and commit metadata are read.
+- **First-run consent prompt** tells you exactly what will be scanned before anything runs.
+
+**When submitting (`--submit`):**
+- A `sanitizeForSubmit()` layer strips sensitive details before any network call:
+  - File paths like `~/.zshrc` are normalized to generic labels (`shell-config`)
+  - Detail fields are whitelisted — only numeric counts and enum-like strings pass through
+  - Agent names, alias names, plist filenames, and other identifying details are removed
+  - `scanResults.detections` are emptied (only scanner name + duration are sent)
+  - `platform` is set to `"redacted"`
+- **No IP logging or analytics telemetry** on the server. The submit endpoint source is open at `packages/web/src/app/api/submit/route.ts`.
+
+### Run From Source
+
+If you'd rather audit before running:
+
+```bash
+git clone https://github.com/garygurevich/vibecheck.git
+cd vibecheck
+npm install && npm run build:probe
+node packages/probe/dist/index.js
+```
 
 ## Scoring
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 import { parseArgs } from "node:util";
-import { platform } from "node:os";
-import { readFileSync } from "node:fs";
+import { platform, homedir } from "node:os";
+import { readFileSync, existsSync, writeFileSync, mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import type { Detection, ProbeResult } from "@vibe/scoring";
@@ -91,6 +91,37 @@ async function main(): Promise<void> {
   const url = values.url ?? DEFAULT_URL;
 
   const isDeep = values.shallow ? false : (values.deep ?? true);
+
+  // Consent prompt — skip for non-interactive or flags that imply informed usage
+  const skipConsent = isJson || values.yes || values.shallow || !process.stdin.isTTY;
+  if (!skipConsent) {
+    const consentPath = join(homedir(), ".vibecheck", "consent");
+    if (!existsSync(consentPath)) {
+      console.log(`
+  vibecheck will scan the following (read-only, nothing leaves your machine unless you choose to submit):
+
+  Project files:    CLAUDE.md, package.json, .gitignore, tsconfig.json, ...
+  Config dirs:      .claude/, .cursor/ (file names only, not contents)
+  Shell presence:   grep for API key names in ~/.zshrc etc. (values never read)
+  Git history:      commit messages, branch names, file change stats
+  Tool detection:   which claude, which cursor, etc.
+
+  Use --shallow to skip global checks (crontab, LaunchAgents).
+  Use --json for machine-readable output with no prompts.
+`);
+      const rl = await import("node:readline/promises").then((m) =>
+        m.createInterface({ input: process.stdin, output: process.stdout })
+      );
+      const answer = await rl.question("  Proceed? [Y/n] ");
+      rl.close();
+      if (answer.trim().toLowerCase() === "n") {
+        process.exit(0);
+      }
+      // Remember consent
+      mkdirSync(dirname(consentPath), { recursive: true });
+      writeFileSync(consentPath, new Date().toISOString(), { mode: 0o600 });
+    }
+  }
 
   const scanners = [
     new EnvironmentScanner(),

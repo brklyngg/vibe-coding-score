@@ -3,6 +3,7 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import type { ProbeResult } from "@vibe/scoring";
+import { sanitizeForSubmit } from "./sanitize.js";
 
 const HANDLE_RE = /^[a-z0-9_-]{3,39}$/;
 
@@ -59,12 +60,13 @@ export async function submitResult(opts: SubmitOpts): Promise<SubmitOutcome> {
   }
 
   const submissionToken = getOrCreateToken();
+  const sanitized = sanitizeForSubmit(opts.result);
 
   try {
     const res = await fetch(`${opts.url}/api/submit`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ handle, probeResult: opts.result, submissionToken }),
+      body: JSON.stringify({ handle, probeResult: sanitized, submissionToken }),
     });
 
     if (res.ok) {

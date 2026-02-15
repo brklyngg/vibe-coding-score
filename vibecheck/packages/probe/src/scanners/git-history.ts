@@ -8,10 +8,8 @@ interface GitCommit {
   hash: string;
   subject: string;
   authorName: string;
-  authorEmail: string;
   authorDate: Date;
   committerName: string;
-  committerEmail: string;
 }
 
 interface FileChange {
@@ -43,15 +41,13 @@ function parseCommitLog(raw: string): GitCommit[] {
   for (const line of raw.split("\n")) {
     if (!line.trim()) continue;
     const parts = line.split("\0");
-    if (parts.length < 7) continue;
+    if (parts.length < 5) continue;
     commits.push({
       hash: parts[0],
       subject: parts[1],
       authorName: parts[2],
-      authorEmail: parts[3],
-      authorDate: new Date(parts[4]),
-      committerName: parts[5],
-      committerEmail: parts[6],
+      authorDate: new Date(parts[3]),
+      committerName: parts[4],
     });
   }
   return commits;
@@ -407,7 +403,7 @@ export class GitHistoryScanner implements Scanner {
     // Run git commands in parallel
     const [logRaw, numstatRaw, branchRaw, tagRaw] = await Promise.all([
       shellOutput(
-        "git log --format='%H%x00%s%x00%an%x00%ae%x00%ai%x00%cn%x00%ce' -500",
+        "git log --format='%H%x00%s%x00%an%x00%ai%x00%cn' -500",
         10000
       ),
       shellOutput("git log --format='%H' --numstat -500", 10000),

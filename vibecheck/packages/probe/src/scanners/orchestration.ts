@@ -70,27 +70,25 @@ export class OrchestrationScanner implements Scanner {
       }
     }
 
-    // Crontab for agent-related entries
-    const crontab = await shellOutput("crontab -l");
-    if (crontab) {
-      const agentPatterns =
-        /claude|agent|heartbeat|sweep|cron.*ai|openclaw|clawdbot/gi;
-      const matches = crontab.match(agentPatterns);
-      if (matches && matches.length > 0) {
+    // Crontab for agent-related entries (grep pipe, never load full crontab)
+    const countRaw = await shellOutput(
+      `crontab -l 2>/dev/null | grep -ciE "claude|agent|heartbeat|sweep|cron.*ai|openclaw|clawdbot"`
+    );
+    const matchCount = parseInt(countRaw ?? "0") || 0;
+    if (matchCount > 0) {
+      findings.push({
+        id: "parallel-scripts",
+        source: "crontab",
+        confidence: "medium",
+        details: { count: matchCount },
+      });
+      if (matchCount >= 5) {
         findings.push({
-          id: "parallel-scripts",
+          id: "cron-scheduler:heavy",
           source: "crontab",
-          confidence: "medium",
-          details: { type: "crontab", count: matches.length },
+          confidence: "high",
+          details: { count: matchCount },
         });
-        if (matches.length >= 5) {
-          findings.push({
-            id: "cron-scheduler:heavy",
-            source: "crontab",
-            confidence: "high",
-            details: { count: matches.length },
-          });
-        }
       }
     }
 
