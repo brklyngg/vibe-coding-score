@@ -1,4 +1,5 @@
-import type { TierTitle } from "@vibe/scoring";
+import type { TierTitle, TaxonomyCategory, ScoreResult, Detection } from "@vibe/scoring";
+import { TIER_TITLES, CATEGORY_LABELS } from "@vibe/scoring";
 
 // -- Tier taglines (from audio overview, validated by Gary) --
 
@@ -112,3 +113,74 @@ export const DIMENSION_COMMENTARY = {
     high: "Full social integration. Published tools, multi-channel AI presence, community builder.",
   },
 } as const;
+
+// -- Web helpers (ported from probe's narrative.ts + tiers.ts) --
+
+const IMPROVEMENT_HINTS: Partial<Record<TaxonomyCategory, string>> = {
+  ship: "Add a GitHub Actions workflow or deploy config to level up.",
+  tooling: "Try connecting an MCP server — filesystem or GitHub are great starters.",
+  continuity: "Add a CLAUDE.md to your project root so the AI remembers your conventions.",
+  security: "Make sure .env is in your .gitignore and review agent permissions.",
+  ops: "Add build/dev/lint scripts to package.json for a quick ops boost.",
+};
+
+export function commentaryForScoreWeb(
+  cat: TaxonomyCategory,
+  score: number
+): string {
+  const c = DIMENSION_COMMENTARY[cat];
+  if (score >= 60) return c.high;
+  if (score >= 30) return c.mid;
+  return c.low;
+}
+
+export function generateNarrativeWeb(
+  score: ScoreResult,
+  detections: Detection[]
+): string {
+  const sorted = [...score.categories].sort((a, b) => b.score - a.score);
+  const strongest = sorted[0];
+  const weakCandidates = sorted.filter((c) => c.score < 50);
+  const weakest =
+    weakCandidates.length > 0
+      ? weakCandidates[weakCandidates.length - 1]
+      : undefined;
+
+  const sentences: string[] = [];
+  sentences.push(commentaryForScoreWeb(strongest.category, strongest.score));
+
+  if (weakest && weakest.category !== strongest.category) {
+    const hint = IMPROVEMENT_HINTS[weakest.category];
+    if (hint && weakest.score < 30) {
+      sentences.push(hint);
+    } else {
+      sentences.push(
+        `${CATEGORY_LABELS[weakest.category]} is your biggest growth area.`
+      );
+    }
+  }
+
+  const mcpCount = detections.filter((d) => d.id.startsWith("mcp-")).length;
+  if (mcpCount > 3) {
+    sentences.push(
+      `${mcpCount} MCP servers connected — that's serious tool integration.`
+    );
+  }
+
+  if (score.pioneer.isPioneer) {
+    sentences.push(
+      "Pioneer badge earned — you're building what the taxonomy hasn't seen yet."
+    );
+  }
+
+  return sentences.join(" ");
+}
+
+export function getNextTierWeb(
+  currentTitle: TierTitle
+): { title: TierTitle; tagline: string; minLevel: number } | null {
+  const idx = TIER_TITLES.findIndex((t) => t.title === currentTitle);
+  if (idx < 0 || idx >= TIER_TITLES.length - 1) return null;
+  const next = TIER_TITLES[idx + 1];
+  return { title: next.title, tagline: next.tagline, minLevel: next.min };
+}

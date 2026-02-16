@@ -35,9 +35,6 @@ export default function Home() {
         <h1 className="mb-6 text-5xl font-extrabold leading-tight tracking-tight">
           How does your AI coding rig stack up?
         </h1>
-        <p className="mb-6 text-lg text-white/60">
-          NPX scans your tool configs, AI settings, and workflow patterns. Applies taxonomy.
-        </p>
 
         <Image
           src="/hero.jpg"
@@ -48,6 +45,10 @@ export default function Home() {
           className="mb-8 mt-2 w-full rounded-xl border border-white/10"
         />
 
+        <p className="mb-6 text-lg text-white/60">
+          NPX scans your tool configs, AI settings, and workflow patterns. Applies taxonomy.
+        </p>
+
         {/* Single command */}
         <p className="mb-2 text-base font-medium text-white/70">
           Run this in your terminal
@@ -55,7 +56,7 @@ export default function Home() {
         <CommandBlock command="npx vibecheck-score" />
 
         {/* What you get — grid */}
-        <div className="mt-10 mb-10">
+        <div className="mt-8 mb-6">
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-widest text-white/50">
             What you get
           </h2>
@@ -90,7 +91,7 @@ export default function Home() {
 
         <a
           href="/result/demo"
-          className="mt-10 mb-10 inline-block text-base font-medium text-indigo-400 underline underline-offset-4 hover:text-indigo-300"
+          className="mt-4 mb-6 inline-block text-base font-medium text-indigo-400 underline underline-offset-4 hover:text-indigo-300"
         >
           See a sample result →
         </a>

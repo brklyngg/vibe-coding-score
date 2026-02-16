@@ -13,9 +13,10 @@ import {
 } from "@vibe/scoring";
 import {
   TIER_TAGLINES,
-  DIMENSION_COMMENTARY,
-  PIONEER_TAGLINE,
   PIONEER_HOOKS,
+  generateNarrativeWeb,
+  getNextTierWeb,
+  commentaryForScoreWeb,
 } from "@/lib/narrative-templates";
 import { CopyUrlButton } from "@/components/CopyUrlButton";
 import { MOCK_RESULT } from "@/lib/mock-data";
@@ -69,47 +70,44 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-function getCommentary(
-  category: TaxonomyCategory,
-  score: number
-): string {
-  const band = score >= 60 ? "high" : score >= 30 ? "mid" : "low";
-  return DIMENSION_COMMENTARY[category][band];
+const HEAVY_SEP = "━".repeat(53);
+const LIGHT_SEP = "─".repeat(52);
+
+function scoreColorClass(score: number): string {
+  if (score >= 50) return "text-green-400";
+  if (score >= 25) return "text-yellow-400";
+  return "text-red-400";
 }
 
-function ScoreBar({ score }: { score: number }) {
+function tierBadgeClass(tier: string): string {
+  const map: Record<string, string> = {
+    basic: "text-white/40",
+    intermediate: "text-cyan-400",
+    advanced: "text-purple-400",
+    elite: "text-yellow-400",
+  };
+  return map[tier] ?? "text-white/40";
+}
+
+function tierBadgeLabel(tier: string): string {
+  const map: Record<string, string> = {
+    basic: "[basic]",
+    intermediate: "[inter]",
+    advanced: "[adv]",
+    elite: "[elite]",
+  };
+  return map[tier] ?? `[${tier}]`;
+}
+
+function TermBar({ score }: { score: number }) {
+  const filled = Math.round(score / 10);
+  const empty = 10 - filled;
   return (
-    <div className="flex items-center gap-3">
-      <div className="h-2 flex-1 rounded-full bg-white/10">
-        <div
-          className="h-2 rounded-full bg-indigo-400"
-          style={{ width: `${Math.min(score, 100)}%` }}
-        />
-      </div>
-      <span className="w-8 text-right text-sm text-white/50">{score}</span>
-    </div>
+    <span>
+      <span className={scoreColorClass(score)}>{"█".repeat(filled)}</span>
+      <span className="text-white/20">{"░".repeat(empty)}</span>
+    </span>
   );
-}
-
-function getCustomStackItems(detections: Detection[]): Detection[] {
-  const custom: Detection[] = [];
-  const seen = new Set<string>();
-
-  for (const d of detections) {
-    if (seen.has(d.id)) continue;
-
-    const isCustom =
-      d.taxonomyMatch === null ||
-      (d.details?.names && Array.isArray(d.details.names) && (d.details.names as string[]).length > 0) ||
-      d.category === "autonomy" && (d.tier === "advanced" || d.tier === "elite");
-
-    if (isCustom) {
-      seen.add(d.id);
-      custom.push(d);
-    }
-  }
-
-  return custom;
 }
 
 export default async function ResultPage({ params }: PageProps) {
@@ -119,150 +117,221 @@ export default async function ResultPage({ params }: PageProps) {
 
   const { score, detections } = result;
 
-  // Group detections by category
-  const detectionsByCategory = new Map<TaxonomyCategory, Detection[]>();
+  // Group detections by category in taxonomy order
+  const grouped = new Map<TaxonomyCategory, Detection[]>();
   for (const d of detections) {
-    const list = detectionsByCategory.get(d.category) ?? [];
+    const list = grouped.get(d.category) ?? [];
     list.push(d);
-    detectionsByCategory.set(d.category, list);
+    grouped.set(d.category, list);
   }
 
-  const customStack = getCustomStackItems(detections);
+  // Named mechanisms
+  const named = detections.filter(
+    (d) => d.details?.names && Array.isArray(d.details.names) && (d.details.names as string[]).length > 0
+  );
+
+  // Pattern bonuses (deduplicated)
+  const seenPatterns = new Set<string>();
+  const patterns = detections.filter((d) => {
+    if (!d.id.startsWith("pattern:")) return false;
+    const base = d.id.includes(":") ? d.id.split(":").slice(0, 2).join(":") : d.id;
+    if (seenPatterns.has(base)) return false;
+    seenPatterns.add(base);
+    return true;
+  });
+
+  // Weakest categories for growth areas
+  const weakest = [...score.categories]
+    .filter((c) => c.score < 50)
+    .sort((a, b) => a.score - b.score)
+    .slice(0, 3);
+
+  const nextTier = getNextTierWeb(score.tier.title);
+  const narrative = generateNarrativeWeb(score, detections);
+
+  // Category and signal counts for footer
+  let categoryCount = 0;
+  let hasInnovations = false;
+  for (const cat of TAXONOMY_CATEGORIES) {
+    const items = grouped.get(cat);
+    if (items && items.length > 0) categoryCount++;
+  }
+  for (const d of detections) {
+    if (d.taxonomyMatch === null) hasInnovations = true;
+  }
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
-      {/* Hero */}
-      <section className="mb-10 text-center">
-        <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-indigo-400">
-          Level {score.level}
-        </p>
-        <h1 className="mb-3 text-5xl font-extrabold tracking-tight">
-          {score.tier.title}
-        </h1>
-        <p className="text-lg italic text-white/50">
-          {TIER_TAGLINES[score.tier.title]}
-        </p>
-      </section>
+    <main className="mx-auto max-w-2xl px-4 py-12 font-mono">
+      <div className="rounded-lg border border-white/10 bg-[#0d1117] p-6 shadow-lg">
+        {/* Title bar dots */}
+        <div className="mb-4 flex gap-1.5">
+          <span className="h-3 w-3 rounded-full bg-red-500/70" />
+          <span className="h-3 w-3 rounded-full bg-yellow-500/70" />
+          <span className="h-3 w-3 rounded-full bg-green-500/70" />
+        </div>
 
-      {/* 8 Categories */}
-      <section className="mb-10 space-y-5">
-        <h2 className="text-lg font-bold text-white/80">Dimensions</h2>
+        {/* Top separator */}
+        <p className="text-white/30">{HEAVY_SEP}</p>
+        <br />
+
+        {/* Header */}
+        <p className="font-bold text-white">VIBE CODER SCORE</p>
+        <br />
+
+        {/* Level + Tier */}
+        <p className="font-bold text-white">
+          Level {score.level} · {score.tier.title}
+        </p>
+        <p className="text-white/40">
+          &quot;{score.tier.tagline}&quot;
+        </p>
+        <br />
+
+        {/* Narrative */}
+        <p className="text-white/80">{narrative}</p>
+        <br />
+
+        {/* Category bar chart */}
         {TAXONOMY_CATEGORIES.map((cat) => {
           const catScore = score.categories.find((c) => c.category === cat);
           const s = catScore?.score ?? 0;
           return (
-            <div key={cat}>
-              <div className="mb-1 flex items-center gap-2 text-sm font-medium">
-                <span>{CATEGORY_EMOJI[cat]}</span>
-                <span>{CATEGORY_LABELS[cat]}</span>
-              </div>
-              <ScoreBar score={s} />
-              <p className="mt-1 text-xs text-white/40">
-                {getCommentary(cat, s)}
-              </p>
-            </div>
+            <p key={cat} className="leading-relaxed">
+              <span className="text-white/60">{CATEGORY_LABELS[cat].padEnd(12)}</span>
+              {"  "}
+              <TermBar score={s} />
+              {"  "}
+              <span className="font-bold text-white">{String(s).padStart(3)}</span>
+            </p>
           );
         })}
-      </section>
+        <br />
 
-      {/* Your Custom Stack */}
-      {customStack.length > 0 && (
-        <section className="mb-10">
-          <h2 className="mb-3 text-lg font-bold text-white/80">Your Custom Stack</h2>
-          <div className="space-y-2">
-            {customStack.map((d) => {
-              const isNovel = d.taxonomyMatch === null;
-              const names = d.details?.names as string[] | undefined;
-              return (
-                <div
-                  key={d.id}
-                  className="rounded-lg border border-white/10 bg-white/5 p-3 pl-4"
-                  style={{ borderLeftColor: "#eab308", borderLeftWidth: "3px" }}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-white">{d.name}</span>
-                    {isNovel && (
-                      <span className="rounded bg-yellow-500/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-yellow-400">
-                        custom
-                      </span>
-                    )}
-                    {!isNovel && (d.tier === "advanced" || d.tier === "elite") && (
-                      <span className="rounded bg-indigo-500/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-indigo-400">
-                        {d.tier}
-                      </span>
-                    )}
-                  </div>
-                  {names && names.length > 0 && (
-                    <p className="mt-1 text-xs text-white/40">
-                      {names.slice(0, 6).join(", ")}
-                      {names.length > 6 && ` +${names.length - 6} more`}
-                    </p>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </section>
-      )}
+        {/* WHAT WE FOUND */}
+        <p className="font-bold text-white">WHAT WE FOUND</p>
+        <p className="text-white/30">{LIGHT_SEP}</p>
+        <br />
 
-      {/* Detections */}
-      <section className="mb-10">
-        <h2 className="mb-3 text-lg font-bold text-white/80">Detections</h2>
+        {/* Taxonomy table */}
         {TAXONOMY_CATEGORIES.map((cat) => {
-          const items = detectionsByCategory.get(cat);
+          const items = grouped.get(cat);
           if (!items || items.length === 0) return null;
-          return (
-            <details key={cat} className="mb-2">
-              <summary className="cursor-pointer text-sm font-medium text-white/60 hover:text-white/80">
-                {CATEGORY_EMOJI[cat]} {CATEGORY_LABELS[cat]} ({items.length})
-              </summary>
-              <ul className="mt-1 ml-5 space-y-1">
-                {items.map((d) => (
-                  <li key={d.id} className="text-xs text-white/40">
-                    {d.name}
-                    <span className="ml-2 text-white/20">
-                      {d.tier} · {d.source}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </details>
-          );
+          return items.map((d, i) => {
+            const catLabel = i === 0 ? CATEGORY_LABELS[cat] : "";
+            const truncName = d.name.length > 40 ? d.name.slice(0, 39) + "…" : d.name;
+            const innovation = d.taxonomyMatch === null;
+            return (
+              <p key={d.id + i} className="leading-relaxed">
+                <span className="text-white/50">{catLabel.padEnd(14)}</span>
+                {" "}
+                <span className="text-white/70">{truncName.padEnd(40)}</span>
+                {" "}
+                <span className={tierBadgeClass(d.tier)}>{tierBadgeLabel(d.tier)}</span>
+                {innovation && <span className="text-yellow-400"> *</span>}
+              </p>
+            );
+          });
         })}
-      </section>
+        <br />
+        <p className="text-white/30">
+          {detections.length} signals · {categoryCount} categories
+        </p>
+        {hasInnovations && (
+          <p className="text-white/30">* = novel detection (not in standard registry)</p>
+        )}
+        <br />
 
-      {/* Pioneer Innovations */}
-      {score.pioneer.isPioneer && score.pioneer.innovations.length > 0 && (
-        <section className="mb-10">
-          <h2 className="mb-3 text-lg font-bold text-yellow-400/80">
-            Pioneer Status
-          </h2>
-          <p className="mb-4 text-sm italic text-yellow-400/60">
-            {PIONEER_TAGLINE}
-          </p>
-          <ul className="space-y-1">
-            {score.pioneer.innovations.map((inn) => {
-              const hook = PIONEER_HOOKS[inn.id] ?? inn.name;
+        {/* KEY MECHANISMS */}
+        {(named.length > 0 || patterns.length > 0) && (
+          <>
+            <p className="font-bold text-white">KEY MECHANISMS</p>
+            <p className="text-white/30">{LIGHT_SEP}</p>
+            <br />
+            {named.map((d) => {
+              const names = d.details!.names as string[];
+              const maxShow = 6;
+              const shown = names.slice(0, maxShow).join(", ");
+              const more = names.length > maxShow ? ` +${names.length - maxShow} more` : "";
               return (
-                <li key={inn.id} className="text-xs text-yellow-400/50">
-                  {hook}
-                </li>
+                <p key={d.id} className="leading-relaxed">
+                  <span className="text-white">{d.name}</span>
+                  <span className="text-white/40">: {shown}{more}</span>
+                </p>
               );
             })}
-          </ul>
-        </section>
-      )}
+            {patterns.map((d) => (
+              <p key={d.id} className="leading-relaxed">
+                <span className="text-yellow-400">★</span>{" "}
+                <span className="text-white">{d.name}</span>
+              </p>
+            ))}
+            <br />
+          </>
+        )}
 
-      {/* Footer */}
-      <footer className="border-t border-white/10 pt-6 text-center">
-        <CopyUrlButton />
-        <p className="mt-4 text-xs text-white/30">
-          Get your own score:{" "}
-          <code className="text-indigo-300">
-            npx vibecheck-score --submit --handle yourname
-          </code>
-        </p>
-      </footer>
+        {/* Pioneer badge */}
+        {score.pioneer.isPioneer && score.pioneer.innovations.length > 0 && (
+          <>
+            <p className="font-bold text-yellow-400">★ Pioneer Badge</p>
+            <p className="text-yellow-400/70">
+              {"  "}{score.pioneer.innovations.length} innovation(s) detected
+            </p>
+            {score.pioneer.innovations.map((inn) => (
+              <p key={inn.id} className="text-yellow-400/70">
+                {"  → "}{PIONEER_HOOKS[inn.id] ?? inn.name}
+              </p>
+            ))}
+            <br />
+          </>
+        )}
+
+        {/* GROWTH AREAS */}
+        {weakest.length > 0 && (
+          <>
+            <p className="font-bold text-white">GROWTH AREAS</p>
+            <p className="text-white/30">{LIGHT_SEP}</p>
+            <br />
+            {weakest.map((w) => (
+              <div key={w.category} className="mb-2">
+                <p className="leading-relaxed">
+                  <span>{CATEGORY_EMOJI[w.category]}</span>{" "}
+                  <span className="text-white">{CATEGORY_LABELS[w.category]}</span>{" "}
+                  <span className="text-white/40">({w.score}/100)</span>
+                </p>
+                <p className="pl-6 text-white/40">
+                  {commentaryForScoreWeb(w.category, w.score)}
+                </p>
+              </div>
+            ))}
+            <br />
+          </>
+        )}
+
+        {/* Next tier hint */}
+        {nextTier && (
+          <>
+            <p className="text-white/40">
+              Next tier: {nextTier.title} (level {nextTier.minLevel}+)
+            </p>
+            <br />
+          </>
+        )}
+
+        {/* Bottom separator */}
+        <p className="text-white/30">{HEAVY_SEP}</p>
+        <br />
+
+        {/* Footer actions */}
+        <div className="flex flex-col items-start gap-3">
+          <CopyUrlButton />
+          <p className="text-white/30">
+            Get your own score:{" "}
+            <span className="text-indigo-300">
+              npx vibecheck-score --submit --handle yourname
+            </span>
+          </p>
+        </div>
+      </div>
     </main>
   );
 }
