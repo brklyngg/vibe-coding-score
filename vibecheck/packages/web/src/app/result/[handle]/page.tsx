@@ -327,7 +327,7 @@ export default async function ResultPage({ params }: PageProps) {
           <p className="text-white/30">
             Get your own score:{" "}
             <span className="text-indigo-300">
-              npx vibecheck-score --submit --handle yourname
+              npx vibecheck-score
             </span>
           </p>
         </div>
