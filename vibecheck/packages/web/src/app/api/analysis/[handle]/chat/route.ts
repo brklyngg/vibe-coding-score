@@ -106,7 +106,7 @@ Answer questions about their setup, suggest improvements, and reference their sp
 
   try {
     const stream = await anthropic.messages.stream({
-      model: "claude-opus-4-6-20250219",
+      model: "claude-opus-4-6",
       max_tokens: 512,
       system: systemPrompt,
       messages: messages.map((m) => ({
