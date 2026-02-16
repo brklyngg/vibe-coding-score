@@ -2,12 +2,13 @@
 
 ## What This Is
 
-Three-package monorepo: `@vibe/scoring` (shared types + scoring engine) + `vibecheck-score` (npm CLI that scans your AI coding setup) + `vibecheck-web` (Next.js 15 web app that displays scores, generates shareable cards, and hosts side-by-side comparisons).
+Three-package monorepo: `@vibe/scoring` (shared types + scoring engine) + `vibecheck-score` (npm CLI that scans your AI coding setup) + `vibecheck-web` (Next.js 15 web app that displays scores, generates shareable cards, hosts comparisons, and provides Opus-powered personalized analysis).
 
 ## Monorepo Structure
 
 ```
 vibecheck/
+├── migrations/         # SQL migrations for Supabase (run manually in SQL Editor)
 ├── packages/scoring/   # @vibe/scoring — shared types + scoring engine
 │   └── src/
 │       ├── index.ts               # Re-exports types + engine
@@ -21,51 +22,43 @@ vibecheck/
 │       ├── scoring/tiers.ts       # tier lookup helpers
 │       ├── flows/
 │       │   ├── index.ts           # Barrel re-exports
-│       │   ├── submit.ts          # submitResult() — token management, sanitization, confirmation, POST to /api/submit
+│       │   ├── submit.ts          # submitResult() — token management, sanitization, sends fullDetections, returns token
 │       │   ├── sanitize.ts        # sanitizeForSubmit() — whitelist layer that strips sensitive details before network calls
-│       │   ├── compare.ts         # compareApi() + interactiveCompare() — compare creation/join
-│       │   ├── merge.ts           # interactiveMerge() + fetchRemoteDetections() — multi-machine merge
+│       │   ├── compare.ts         # compareApi() + interactiveCompare() + maybeMergeFirst() — compare creation/join with pre-merge option
+│       │   ├── merge.ts           # interactiveMerge() + fetchRemoteDetections() — multi-machine merge (returns ProbeResult | null)
 │       │   └── post-scan.ts       # postScanFlow() — 3-option interactive menu after every scan
 │       ├── taxonomy/
 │       │   ├── registry.json      # 171-entry lookup table (id, name, category, tier, signals)
 │       │   └── classifier.ts      # RawFinding → Detection[] via registry lookup
-│       ├── scanners/
-│       │   ├── index.ts           # Scanner interface + runAllScanners (Promise.allSettled)
-│       │   ├── utils.ts           # fileExists, readFileIfExists, readJsonIfExists, shellOutput
-│       │   ├── workspace.ts       # Monorepo detection + workspace discovery (2-level walk, cap 20)
-│       │   ├── universal-file.ts  # Config-driven UFS: ~50 checks, 6 check types, multi-category emissions, supersedes v2
-│       │   ├── git-history.ts     # Git log analysis: commit style, velocity, branches, test/doc ratios, time patterns
-│       │   ├── environment.ts     # API keys (.env + shell config via grep), model routing, local models
-│       │   ├── mcp.ts             # MCP servers (Code + Desktop + project-scoped), CLI tools
-│       │   ├── agents.ts          # Subagents, hooks, AGENTS.md, SOUL.md, EVOLVE.md, skills, commands
-│       │   ├── orchestration.ts   # tmux, worktrees, orchestrator CLIs, crontab
-│       │   ├── repositories.ts    # CI/CD, test/E2E configs, lint/format, TS strict, npm scripts, sub-project scanning, monorepo tools
-│       │   ├── memory.ts          # CLAUDE.md, memories, rules, cursorrules, windsurfrules, copilot, logs
-│       │   ├── security.ts        # gitignore, file perms, agent perms, canary tokens
-│       │   ├── deploy.ts          # vercel/netlify/fly/cloudflare/docker configs, deploy CLIs
-│       │   └── social.ts          # git remote, npm public, webhooks
+│       ├── scanners/              # 11 scanners (environment, mcp, agents, orchestration, repositories, memory, security, deploy, social, git-history, universal-file)
 │       └── output/
-│           ├── terminal.ts        # chalk + ora rich CLI output (taxonomy table with innovation markers, bar chart, growth areas)
-│           └── narrative.ts       # Dimension commentary, archetype data, narrative generator
+│           ├── terminal.ts        # chalk + ora rich CLI output (wrapText helper, expanded taxonomy table, no next-tier)
+│           └── narrative.ts       # Data-driven narrative: references MCP server names, tool names, pattern counts
 └── packages/web/       # Next.js 15: vibecheck.dev
     └── src/
-        ├── app/               # App router pages + API routes
-        │   ├── api/og/[handle]/route.tsx  # Satori OG image generation
-        │   ├── api/submit/route.ts        # Submit probe results
-        │   ├── api/compare/route.ts       # Create/join comparisons
-        │   ├── api/result/[handle]/detections/route.ts  # Public GET: return detections for a handle
-        │   ├── result/[handle]/page.tsx   # Individual result page
-        │   └── compare/[code]/page.tsx    # Side-by-side comparison (waiting + complete states)
+        ├── app/
+        │   ├── api/og/[handle]/route.tsx                    # Satori OG image generation
+        │   ├── api/submit/route.ts                          # Submit probe results (stores fullDetections + clears stale analysis on update)
+        │   ├── api/compare/route.ts                         # Create/join comparisons
+        │   ├── api/result/[handle]/detections/route.ts      # Public GET: sanitized detections only (SECURITY CONTRACT: never serves full_detections)
+        │   ├── api/analysis/[handle]/route.ts               # GET: Opus-powered analysis (token auth, 24h cache, 200/day budget)
+        │   ├── api/analysis/[handle]/chat/route.ts          # POST: streaming follow-up chat (token auth, 10 msg/hr rate limit)
+        │   ├── result/[handle]/page.tsx                     # Individual result page + AnalysisSection for authenticated owners
+        │   └── compare/[code]/page.tsx                      # Side-by-side comparison + CompareAnalysis for authenticated viewers
         ├── lib/
         │   ├── mock-data.ts           # Mock detections + MOCK_RESULT for /result/demo
-        │   ├── narrative-templates.ts  # Tier taglines, archetype names, pioneer hooks
+        │   ├── narrative-templates.ts  # Tier taglines, pioneer hooks, dimension commentary, web narrative generator
         │   ├── satori-card.tsx        # Card component for Satori rendering
         │   └── radar-svg.tsx          # Inline SVG radar chart (8 dimensions)
         └── components/
-            ├── PioneerCard.tsx        # Gold-border pioneer card wrapper
-            ├── RefreshTimer.tsx       # Auto-refresh client component (compare waiting state)
-            ├── CopyBlock.tsx          # Pre block with copy button
-            └── CommandBlock.tsx       # Terminal command display with $ prompt + copy
+            ├── AnalysisSection.tsx     # Client: token auth (URL → localStorage), fetches Opus analysis, chat UI
+            ├── CompareAnalysis.tsx     # Client: comparative Opus analysis for authenticated compare viewers
+            ├── ChatMessage.tsx         # Client: single chat message (user/assistant)
+            ├── ChatInput.tsx           # Client: text input with send button
+            ├── PioneerCard.tsx         # Gold-border pioneer card wrapper
+            ├── RefreshTimer.tsx        # Auto-refresh client component (compare waiting state)
+            ├── CopyBlock.tsx           # Pre block with copy button
+            └── CommandBlock.tsx        # Terminal command display with $ prompt + copy
 ```
 
 ## Key Commands
@@ -89,9 +82,9 @@ node packages/probe/dist/index.js --merge-from handle  # Fetch & merge detection
 
 Both `probe` and `web` depend on `@vibe/scoring` (npm workspace link). Build order matters: scoring must build before probe and web. The root `build` script chains them correctly.
 
-**Probe build:** Uses esbuild (`build.mjs`) to bundle all dependencies — including `@vibe/scoring`, `chalk`, and `ora` — into a single `dist/index.js`. The published npm package has zero runtime dependencies. `@vibe/scoring` is a devDependency (needed at build time, inlined into the bundle).
+**Probe build:** Uses esbuild (`build.mjs`) to bundle all dependencies — including `@vibe/scoring`, `chalk`, and `ora` — into a single `dist/index.js`. The published npm package has zero runtime dependencies.
 
-All types and scoring logic live in `@vibe/scoring`. Probe's `types.ts` and `scoring/engine.ts` are re-export shims for backward compatibility. Web imports directly from `@vibe/scoring`.
+**Web dependencies:** `@anthropic-ai/sdk` for Opus analysis/chat. Requires `ANTHROPIC_API_KEY` env var.
 
 ## Scoring System
 
@@ -108,60 +101,62 @@ Observer (0-10) → Apprentice (11-20) → Practitioner (21-30) → Builder (31-
 
 ## Scanner Pipeline
 
-The probe runs 11 scanners in parallel via `Promise.allSettled` (9 v2 scanners + GitHistoryScanner + UniversalFileScanner last). Each v2 scanner emits `RawFinding[]`, passes them through `classify()` which maps IDs to the registry for category/tier/name, and returns `ScanResult`. The UFS builds `Detection[]` directly with exact spec points — no classify() pass needed.
+The probe runs 11 scanners in parallel via `Promise.allSettled` (9 v2 scanners + GitHistoryScanner + UniversalFileScanner last). After all scanners complete, artifact-level dedup suppresses v2 detections when UFS covers the same artifact. Remaining detections are deduped by ID and fed into `computeScore()`.
 
-After all scanners complete, artifact-level dedup suppresses v2 detections when UFS covers the same artifact (e.g., UFS `ufs:claude-md:rich` supersedes v2 `claude-md`). The `supersedes` field on UFS config entries declares which v2 IDs to drop. Remaining detections are deduped by ID and fed into `computeScore()`.
+**UFS architecture:** One config-driven scanner with ~50 checks and 6 check functions. Checks are ordered highest-threshold-first per artifact; conditional chains emit only the highest match per (artifact, category) pair. Scopes (`project`/`workspace`/`global`) control where checks run; global scope runs by default (use `--shallow` to skip).
 
-**UFS architecture:** One config-driven scanner with a typed array of ~50 checks and 6 check functions (`exists`, `lineCount`, `dirChildren`, `grepKeywords`, `jsonField`, `shell`, `testRatio`, `filePermission`). Checks are ordered highest-threshold-first per artifact; conditional chains emit only the highest match per (artifact, category) pair. Multi-category emissions let one artifact award points across multiple categories. Scopes (`project`/`workspace`/`global`) control where checks run; global scope runs by default (use `--shallow` to skip). `--deep` is kept as a silent no-op for backward compat.
-
-Terminal output: top separator → VIBE CODER SCORE header → level/tier + tagline → narrative → category bar chart → WHAT WE FOUND (taxonomy table with `*` innovation markers) → key mechanisms → pioneer badge → GROWTH AREAS (commentary) → next tier → bottom separator. Type code is computed for JSON output but not displayed in terminal.
+Terminal output: top separator → VIBE CODER SCORE header → level/tier + tagline → narrative (data-driven with tool names) → category bar chart → WHAT WE FOUND (expanded taxonomy table with sub-lines for named detections) → key mechanisms → pioneer badge → GROWTH AREAS → bottom separator.
 
 ## Privacy & Security Architecture
 
-**Grep-over-readFile:** Scanners that check `.env`, shell configs (`~/.zshrc` etc.), and crontab use `shellOutput()` with `grep` commands instead of `readFileIfExists()`. Secret values never enter the Node process memory — only key name presence or match counts are captured.
+**Two-tier detection model:**
+- `probe_result.detections` — sanitized (names/paths stripped), served publicly via `/api/result/[handle]/detections`
+- `full_detections` — unsanitized (tool names preserved), stored server-side only, used exclusively by Opus analysis endpoints. NEVER exposed via any public GET endpoint.
 
-**Consent prompt:** First interactive run shows a disclosure of what will be scanned and writes `~/.vibecheck/consent` on acceptance. Skipped for `--json`, `--yes`, `--shallow`, and non-TTY stdin.
+**Submission sanitization:** `sanitizeForSubmit()` in `flows/sanitize.ts` runs inside `submitResult()` before any network call. Whitelist approach: only numeric/enum details pass through, paths normalized to generic labels, platform redacted. The POST body sends both `probeResult` (sanitized) and `fullDetections` (unsanitized) — the server stores them in separate columns.
 
-**Submission sanitization:** `sanitizeForSubmit()` in `flows/sanitize.ts` runs inside `submitResult()` before any network call. It applies a whitelist approach:
-- `details` fields: only numeric keys (`count`, `ratio`, `commitsPerWeek`, etc.) and enum-like strings (`pattern`) pass through; everything else (names, aliases, plists, paths) is stripped
-- `source` fields: file paths like `~/.zshrc` are normalized to generic labels (`shell-config`, `agents-dir`, etc.)
-- `scanResults.detections`: emptied (only scanner name + duration sent)
-- `platform`: set to `"redacted"`
-- All 4 submit paths (--submit, --merge-from auto-submit, interactiveMerge, interactiveCompare) go through `submitResult()`, so sanitization is a single choke point
+**Grep-over-readFile:** Scanners that check `.env`, shell configs, and crontab use `shellOutput()` with `grep`. Secret values never enter process memory.
 
-**Note:** Stripping `details.names` means the KEY MECHANISMS section won't render on the web result page for submitted results. This is intentional — agent/skill names shouldn't be public. Local terminal output still shows full details.
+**Consent prompt:** First interactive run shows disclosure, writes `~/.vibecheck/consent` on acceptance.
 
-**Git history:** Only commit messages, author names, and timestamps are collected. Author/committer emails are not parsed.
+**Token-based ownership:** `~/.vibecheck/token` (UUID) identifies the machine. Returned as `token` in `SubmitOutcome` for private analysis links.
 
 ## Post-Scan Flow
 
-After every interactive scan (non-JSON, non-flag), a 3-option menu appears:
-1. **I also use AI tools on another machine** — submits current scan, prints `--merge-from <handle>` command, then polls for merged results from Machine B (5s interval, 5min timeout, Enter to skip). On success, renders combined results and offers compare option
-2. **Compare with a friend** — submits current scan, asks for existing code or creates new comparison
-3. **Done** (default on Enter)
-
-Guards: skipped when `--json`, `--submit`, `--yes`, `--compare`, `--merge-from`, or non-TTY stdin.
-
-The `flows/` module contains extracted logic: `submitResult()`, `compareApi()`, `interactiveMerge()`, `interactiveCompare()`, `fetchRemoteDetections()`, `postScanFlow()`. The `--submit` flag path in `index.ts` calls these functions directly (separate entry point from the interactive menu).
+After every interactive scan (non-JSON, non-flag), a 3-option menu: multi-machine merge, compare with friend, or done. The compare path now includes a `maybeMergeFirst()` prompt before joining, available in both flag (`--compare`) and interactive paths.
 
 ## Compare Mode
 
-Two-person comparison flow via `--compare` flag (requires `--submit`):
-- `--compare create`: POSTs to `/api/compare` with `action: "create"`, gets back a 6-char hex code
-- `--compare <code>`: POSTs to `/api/compare` with `action: "join"`, gets back compare URL
-- DB: `comparisons` table (code, handle_a, handle_b, timestamps). Race-condition guard via `.is("handle_b", null)` on join
-- Web: `/compare/[code]` page — waiting state with 15s auto-refresh (`RefreshTimer`), complete state with identity cards, dimension bars (indigo/emerald), divergence analysis, unique detections comparison
-- Handle auto-generated as 8-char hex if `--handle` omitted
+Two-person comparison flow via `--compare` flag (requires `--submit`). Web compare page shows side-by-side dimension bars (single row per category), divergence analysis, unique detections with actionable hints, and footer links to individual results.
 
 ## Multi-Machine Merge
 
-Two merge modes: `--merge <file>` (local JSON) and `--merge-from <handle>` (fetches from `/api/result/[handle]/detections`). Mutually exclusive. Both dedup by detection ID into the existing scan results.
+Two merge modes: `--merge <file>` (local JSON) and `--merge-from <handle>` (remote fetch). `interactiveMerge()` returns `ProbeResult | null` so callers can chain the merged result into compare flows. Merge prompt includes expanded AI assistant instructions with safety guidance.
 
-**Bidirectional round-trip:** Machine A submits its scan and polls for `{handle}-merged`. Machine B runs `--merge-from {handle}`, computes combined results, renders them, and auto-submits as `{handle}-merged` (handle capped to 31 chars + `-merged` suffix). Machine A's poll detects the upload, renders the combined score, and offers a compare option. Uses existing `/api/submit` and `/api/result/[handle]/detections` endpoints — no new API routes needed.
+## Opus-Powered Analysis (Web)
 
-Registry is a flat JSON array (171 entries) — editable without recompilation. The repositories scanner walks sub-projects up to 2 levels deep.
+**Authentication:** Submission token passed via URL query param (`?token=...`), stored in `localStorage` keyed by handle. Client components check URL first, then localStorage.
 
-Narrative commentary lives in `packages/probe/src/output/narrative.ts`. Archetype names/descriptions are defined there and also in `packages/web/src/lib/narrative-templates.ts` (web uses them for satori cards and result pages).
+**Analysis endpoint** (`GET /api/analysis/[handle]?token=...`):
+- Validates token against `submission_token` in DB
+- Uses `full_detections` (falls back to `probe_result.detections`)
+- 24-hour cache via `analysis_text` + `analysis_generated_at` columns
+- Daily budget: 200 analyses/day (~$20/day at Opus pricing)
+- Supports comparative analysis via `?compare=otherHandle` query param
+- Model: `claude-opus-4-6-20250219`, max_tokens 1024
+
+**Chat endpoint** (`POST /api/analysis/[handle]/chat?token=...`):
+- Streaming response via ReadableStream
+- Rate limit: 10 messages/handle/hour (tracked via `chat_count` + `chat_window_start` columns)
+- System prompt includes full detection data for contextual answers
+
+**Supabase columns on `results` table:**
+- `full_detections` (JSONB) — unsanitized detection array
+- `analysis_text` (TEXT) — cached Opus analysis
+- `analysis_generated_at` (TIMESTAMPTZ) — cache timestamp
+- `chat_count` (INT) — rate limit counter
+- `chat_window_start` (TIMESTAMPTZ) — rate limit window start
+- Analysis cache is cleared on re-submit (update path sets both to null)
 
 ## Context Docs
 
