@@ -1,5 +1,5 @@
 import type { TierTitle, TaxonomyCategory, ScoreResult, Detection } from "@vibe/scoring";
-import { TIER_TITLES, CATEGORY_LABELS } from "@vibe/scoring";
+import { CATEGORY_LABELS } from "@vibe/scoring";
 
 // -- Tier taglines (from audio overview, validated by Gary) --
 
@@ -13,48 +13,6 @@ export const TIER_TAGLINES: Record<TierTitle, string> = {
   Architect: "You aren't coding anymore",
   Orchestrator: "Orchestrating a system of digital workers",
   Industrialist: "A self-sustaining software factory",
-};
-
-// -- Archetype names mapped to 4-letter codes --
-
-export const ARCHETYPE_NAMES: Record<string, string> = {
-  MARD: "The Orchestrator",
-  MARC: "The Methodist",
-  MARL: "The Strategist",
-  MACD: "The Planner",
-  MACL: "The Analyst",
-  MGRD: "The Engineer",
-  MGRL: "The Pragmatist",
-  MGCD: "The Sentinel",
-  MGCL: "The Scholar",
-  VARD: "The Powerhouse",
-  VARL: "The Maverick",
-  VACD: "The Experimenter",
-  VACL: "The Freelancer",
-  VGRD: "The Blitz Builder",
-  VGRL: "The Scrapper",
-  VGCD: "The Tinkerer",
-  VGCL: "The Explorer",
-};
-
-export const ARCHETYPE_DESCRIPTIONS: Record<string, string> = {
-  MARD: "Deep model expertise, autonomous agents, rigorous shipping, and a deep tool ecosystem. You run a symphony of AI tools.",
-  MARC: "Strategic model selection with autonomous agents, but shipping is measured and deliberate. You build carefully and deploy with confidence.",
-  MARL: "Smart model strategy with autonomous agents and rapid shipping, but a lighter tool footprint. Speed is the priority.",
-  MACD: "Master strategist with autonomous agents and deep tooling, but cautious on shipping. You perfect before you deploy.",
-  MACL: "Strategic thinker with autonomous agents in a lean setup. Quality over quantity, brains over brawn.",
-  MGRD: "Model expertise paired with guided agents and rigorous process. You trust the AI, but you steer the ship.",
-  MGRL: "Smart model use, guided agents, and rapid shipping with a lean stack. Efficient and effective.",
-  MGCD: "Deep model knowledge, guided agents, cautious shipping, deep tools. The fortress — nothing gets past you.",
-  MGCL: "Thoughtful model strategy in a guided, lean setup. The scholar — methodical and measured.",
-  VARD: "Velocity-first with autonomous agents, rapid shipping, and deep tooling. An unstoppable force.",
-  VARL: "Speed plus autonomy plus rapid shipping. Light on tools but heavy on output. The maverick.",
-  VACD: "Velocity seeker with autonomous agents, cautious shipping, and deep tools. Tries everything, ships the best.",
-  VACL: "Fast, autonomous, cautious, light. The freelancer — moves fast but picks battles carefully.",
-  VGRD: "Velocity is the vibe. Ships fast, integrates everything, but keeps the AI on a leash.",
-  VGRL: "Fast, guided, rapid, light. The scrapper — does more with less and ships it yesterday.",
-  VGCD: "Velocity seeker who tinkers with deep tools under guided supervision. Always on the bleeding edge.",
-  VGCL: "The explorer — fast-moving, guided, cautious, and light. Just getting started on the journey, but moving quick.",
 };
 
 // -- Pioneer narrative hooks --
@@ -176,11 +134,3 @@ export function generateNarrativeWeb(
   return sentences.join(" ");
 }
 
-export function getNextTierWeb(
-  currentTitle: TierTitle
-): { title: TierTitle; tagline: string; minLevel: number } | null {
-  const idx = TIER_TITLES.findIndex((t) => t.title === currentTitle);
-  if (idx < 0 || idx >= TIER_TITLES.length - 1) return null;
-  const next = TIER_TITLES[idx + 1];
-  return { title: next.title, tagline: next.tagline, minLevel: next.min };
-}

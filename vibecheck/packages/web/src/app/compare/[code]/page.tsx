@@ -14,6 +14,7 @@ import {
   DIMENSION_COMMENTARY,
 } from "@/lib/narrative-templates";
 import { RefreshTimer } from "@/components/RefreshTimer";
+import { CompareAnalysis } from "@/components/CompareAnalysis";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let _supabase: ReturnType<typeof createClient<any>> | null = null;
@@ -104,6 +105,20 @@ function TermBar({ score, color }: { score: number; color: string }) {
   );
 }
 
+function getDetectionHint(category: TaxonomyCategory): string {
+  const hints: Partial<Record<TaxonomyCategory, string>> = {
+    intelligence: "Consider adding this model strategy",
+    tooling: "This tool integration could boost your setup",
+    continuity: "This memory approach helps AI retain context",
+    autonomy: "This agent pattern increases automation",
+    ship: "This shipping practice accelerates delivery",
+    security: "This security measure hardens your workflow",
+    ops: "This ops practice improves maintainability",
+    social: "This social integration expands your reach",
+  };
+  return hints[category] ?? "Worth exploring";
+}
+
 function getCommentary(category: TaxonomyCategory, score: number): string {
   const band = score >= 60 ? "high" : score >= 30 ? "mid" : "low";
   return DIMENSION_COMMENTARY[category][band];
@@ -119,16 +134,6 @@ export default async function ComparePage({ params }: PageProps) {
     return (
       <main className="mx-auto max-w-2xl px-6 py-16 text-center">
         <RefreshTimer intervalMs={15000} />
-        <div className="mb-8 text-center">
-          <p className="text-4xl tracking-widest">
-            <span className="inline-block -scale-x-100">🕵️</span>
-            <span className="mx-4 text-white/20">vs</span>
-            <span>🕵️</span>
-          </p>
-          <p className="mt-2 text-xs tracking-widest text-white/30">
-            Open your coat. Show your stack.
-          </p>
-        </div>
         <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-indigo-400">
           Compare Mode
         </p>
@@ -194,7 +199,7 @@ export default async function ComparePage({ params }: PageProps) {
   const uniqueToB = resultB.detections.filter((d) => !idsA.has(d.id));
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-12 font-mono">
+    <main className="mx-auto max-w-4xl px-4 py-12 font-mono">
       <div className="rounded-lg border border-white/10 bg-[#0d1117] p-6 shadow-lg">
         {/* Title bar dots */}
         <div className="mb-4 flex gap-1.5">
@@ -232,25 +237,24 @@ export default async function ComparePage({ params }: PageProps) {
           const sB = catMapB.get(cat) ?? 0;
           const gap = Math.abs(sA - sB);
           return (
-            <div key={cat} className="mb-3">
-              <p className="text-white/60">
-                {CATEGORY_EMOJI[cat]} {CATEGORY_LABELS[cat]}
+            <div key={cat} className="mb-1">
+              {/* Desktop: single row. Mobile: stacked */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                <span className="w-28 shrink-0 text-white/60">
+                  {CATEGORY_EMOJI[cat]} {CATEGORY_LABELS[cat]}
+                </span>
+                <span className="flex items-center gap-1">
+                  <TermBar score={sA} color="text-indigo-400" />
+                  <span className="w-8 text-right text-indigo-400">{sA}</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <TermBar score={sB} color="text-emerald-400" />
+                  <span className="w-8 text-right text-emerald-400">{sB}</span>
+                </span>
                 {gap >= 15 && (
-                  <span className="ml-2 text-amber-400">[{gap}pt gap]</span>
+                  <span className="text-amber-400 text-xs">[{gap}pt]</span>
                 )}
-              </p>
-              <p className="leading-relaxed">
-                {"  "}
-                <TermBar score={sA} color="text-indigo-400" />
-                {"  "}
-                <span className="text-indigo-400">{String(sA).padStart(3)}</span>
-              </p>
-              <p className="leading-relaxed">
-                {"  "}
-                <TermBar score={sB} color="text-emerald-400" />
-                {"  "}
-                <span className="text-emerald-400">{String(sB).padStart(3)}</span>
-              </p>
+              </div>
             </div>
           );
         })}
@@ -300,10 +304,15 @@ export default async function ComparePage({ params }: PageProps) {
               <>
                 <p className="text-indigo-400">Only @{comparison.handle_a}:</p>
                 {uniqueToA.map((d) => (
-                  <p key={d.id} className="text-white/50">
-                    {"  "}{CATEGORY_EMOJI[d.category]} {d.name}{" "}
-                    <span className={tierBadgeClass(d.tier)}>{tierBadgeLabel(d.tier)}</span>
-                  </p>
+                  <div key={d.id} className="mb-1">
+                    <p className="text-white/50">
+                      {"  "}{CATEGORY_EMOJI[d.category]} {d.name}{" "}
+                      <span className={tierBadgeClass(d.tier)}>{tierBadgeLabel(d.tier)}</span>
+                    </p>
+                    <p className="pl-6 text-white/30 text-xs">
+                      @{comparison.handle_b}: {getDetectionHint(d.category)}
+                    </p>
+                  </div>
                 ))}
                 <br />
               </>
@@ -313,10 +322,15 @@ export default async function ComparePage({ params }: PageProps) {
               <>
                 <p className="text-emerald-400">Only @{comparison.handle_b}:</p>
                 {uniqueToB.map((d) => (
-                  <p key={d.id} className="text-white/50">
-                    {"  "}{CATEGORY_EMOJI[d.category]} {d.name}{" "}
-                    <span className={tierBadgeClass(d.tier)}>{tierBadgeLabel(d.tier)}</span>
-                  </p>
+                  <div key={d.id} className="mb-1">
+                    <p className="text-white/50">
+                      {"  "}{CATEGORY_EMOJI[d.category]} {d.name}{" "}
+                      <span className={tierBadgeClass(d.tier)}>{tierBadgeLabel(d.tier)}</span>
+                    </p>
+                    <p className="pl-6 text-white/30 text-xs">
+                      @{comparison.handle_a}: {getDetectionHint(d.category)}
+                    </p>
+                  </div>
                 ))}
                 <br />
               </>
@@ -324,8 +338,24 @@ export default async function ComparePage({ params }: PageProps) {
           </>
         )}
 
+        {/* Comparative analysis (only visible to authenticated viewer) */}
+        <CompareAnalysis handleA={comparison.handle_a} handleB={comparison.handle_b} />
+
         {/* Bottom separator */}
         <p className="text-white/30">{HEAVY_SEP}</p>
+        <br />
+
+        {/* Individual result links */}
+        <p className="text-white/40 mb-1">View individual results:</p>
+        <p className="mb-1">
+          <a href={`/result/${comparison.handle_a}`} className="text-indigo-400 hover:underline">
+            @{comparison.handle_a}
+          </a>
+          {" · "}
+          <a href={`/result/${comparison.handle_b}`} className="text-emerald-400 hover:underline">
+            @{comparison.handle_b}
+          </a>
+        </p>
         <br />
 
         {/* Footer */}

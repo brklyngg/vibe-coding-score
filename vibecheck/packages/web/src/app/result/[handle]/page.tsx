@@ -15,10 +15,10 @@ import {
   TIER_TAGLINES,
   PIONEER_HOOKS,
   generateNarrativeWeb,
-  getNextTierWeb,
   commentaryForScoreWeb,
 } from "@/lib/narrative-templates";
 import { CopyUrlButton } from "@/components/CopyUrlButton";
+import { AnalysisSection } from "@/components/AnalysisSection";
 import { MOCK_RESULT } from "@/lib/mock-data";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -146,7 +146,6 @@ export default async function ResultPage({ params }: PageProps) {
     .sort((a, b) => a.score - b.score)
     .slice(0, 3);
 
-  const nextTier = getNextTierWeb(score.tier.title);
   const narrative = generateNarrativeWeb(score, detections);
 
   // Category and signal counts for footer
@@ -307,15 +306,8 @@ export default async function ResultPage({ params }: PageProps) {
           </>
         )}
 
-        {/* Next tier hint */}
-        {nextTier && (
-          <>
-            <p className="text-white/40">
-              Next tier: {nextTier.title} (level {nextTier.minLevel}+)
-            </p>
-            <br />
-          </>
-        )}
+        {/* Analysis section (only visible to authenticated owner) */}
+        <AnalysisSection handle={handle} />
 
         {/* Bottom separator */}
         <p className="text-white/30">{HEAVY_SEP}</p>

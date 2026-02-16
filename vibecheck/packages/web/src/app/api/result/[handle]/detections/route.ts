@@ -1,3 +1,7 @@
+// SECURITY CONTRACT: This endpoint serves sanitized data from probe_result.detections ONLY.
+// Never serve full_detections here — those contain unsanitized tool names and are restricted
+// to server-side Opus analysis.
+
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 

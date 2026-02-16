@@ -19,6 +19,7 @@ export interface SubmitOutcome {
   success: boolean;
   handle: string;
   url?: string;
+  token?: string;
   error?: string;
 }
 
@@ -66,7 +67,7 @@ export async function submitResult(opts: SubmitOpts): Promise<SubmitOutcome> {
     const res = await fetch(`${opts.url}/api/submit`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ handle, probeResult: sanitized, submissionToken }),
+      body: JSON.stringify({ handle, probeResult: sanitized, fullDetections: opts.result.detections, submissionToken }),
     });
 
     if (res.ok) {
@@ -80,8 +81,10 @@ export async function submitResult(opts: SubmitOpts): Promise<SubmitOutcome> {
         console.log(`  \x1b[32m│\x1b[0m ${inner.padEnd(width - 2)} \x1b[32m│\x1b[0m`);
         console.log(`  \x1b[32m│\x1b[0m ${urlLine.padEnd(width - 2)} \x1b[32m│\x1b[0m`);
         console.log(`  \x1b[32m└${border}┘\x1b[0m\n`);
+        console.log(`  View your detailed analysis (private link — don't share):`);
+        console.log(`    ${body.url}?token=${submissionToken}\n`);
       }
-      return { success: true, handle, url: body.url };
+      return { success: true, handle, url: body.url, token: submissionToken };
     } else if (res.status === 403) {
       const msg = "This handle is owned by a different machine.";
       if (!opts.silent) {

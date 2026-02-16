@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { handle, probeResult, submissionToken } = body as Record<string, unknown>;
+  const { handle, probeResult, submissionToken, fullDetections } = body as Record<string, unknown>;
 
   // Validate handle
   if (typeof handle !== "string" || !HANDLE_RE.test(handle)) {
@@ -76,7 +76,13 @@ export async function POST(request: Request) {
     // Upsert: update existing row
     const { error } = await getSupabase()
       .from("results")
-      .update({ probe_result: probeResult, updated_at: new Date().toISOString() })
+      .update({
+        probe_result: probeResult,
+        full_detections: fullDetections ?? null,
+        analysis_text: null,
+        analysis_generated_at: null,
+        updated_at: new Date().toISOString(),
+      })
       .eq("handle", handle);
 
     if (error) {
@@ -87,6 +93,7 @@ export async function POST(request: Request) {
     const { error } = await getSupabase().from("results").insert({
       handle,
       probe_result: probeResult,
+      full_detections: fullDetections ?? null,
       submission_token: submissionToken,
     });
 

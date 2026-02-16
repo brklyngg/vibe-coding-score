@@ -6,13 +6,30 @@ import type {
   TaxonomyCategory,
 } from "@vibe/scoring";
 import { CATEGORY_EMOJI, CATEGORY_LABELS, TAXONOMY_CATEGORIES } from "@vibe/scoring";
-import { getNextTier } from "../scoring/tiers.js";
 import { generateNarrative } from "./narrative.js";
 import { commentaryForScore } from "./narrative.js";
 
 const HEAVY_SEP = "━".repeat(53);
 const LIGHT_SEP = "─".repeat(52);
 const INDENT = "  ";
+
+function wrapText(text: string, maxWidth?: number): string {
+  const width = maxWidth ?? (process.stdout.columns ? process.stdout.columns - 4 : 76);
+  if (text.length <= width) return text;
+  const words = text.split(" ");
+  const lines: string[] = [];
+  let current = "";
+  for (const word of words) {
+    if (current && current.length + 1 + word.length > width) {
+      lines.push(current);
+      current = word;
+    } else {
+      current = current ? `${current} ${word}` : word;
+    }
+  }
+  if (current) lines.push(current);
+  return lines.map((l, i) => (i === 0 ? l : `${INDENT}${l}`)).join("\n");
+}
 
 function scoreColor(score: number): (text: string) => string {
   if (score >= 50) return chalk.green;
@@ -48,19 +65,40 @@ function renderTaxonomyTable(
 
   let categoryCount = 0;
   let hasInnovations = false;
+  let firstCategory = true;
   for (const cat of TAXONOMY_CATEGORIES) {
     const items = grouped.get(cat);
     if (!items || items.length === 0) continue;
     categoryCount++;
 
+    // Blank line between categories
+    if (!firstCategory) lines.push("");
+    firstCategory = false;
+
     for (let i = 0; i < items.length; i++) {
       const d = items[i];
       const catLabel = i === 0 ? CATEGORY_LABELS[cat] : "";
-      const truncName = d.name.length > nameW ? d.name.slice(0, nameW - 1) + "…" : d.name;
+      const isMcp = d.id.startsWith("mcp-");
+      const displayName = isMcp ? d.id.replace(/^mcp-/, "") : d.name;
+      const truncName = displayName.length > nameW ? displayName.slice(0, nameW - 1) + "…" : displayName;
       const badge = tierBadge(d.tier);
       const innovation = d.taxonomyMatch === null ? chalk.yellow(" *") : "";
       if (d.taxonomyMatch === null) hasInnovations = true;
       lines.push(`${INDENT}  ${catLabel.padEnd(catW)} ${truncName.padEnd(nameW)} ${badge}${innovation}`);
+
+      // Sub-lines for detections with named items
+      const names = d.details?.names;
+      if (names && Array.isArray(names) && (names as string[]).length > 0) {
+        const nameList = names as string[];
+        const maxShow = 5;
+        const shown = nameList.slice(0, maxShow);
+        for (const n of shown) {
+          lines.push(`${INDENT}  ${"".padEnd(catW)} ${chalk.gray("  › " + n)}`);
+        }
+        if (nameList.length > maxShow) {
+          lines.push(`${INDENT}  ${"".padEnd(catW)} ${chalk.gray(`  +${nameList.length - maxShow} more`)}`);
+        }
+      }
     }
   }
 
@@ -140,7 +178,7 @@ export function renderResults(
 
   // 4. Narrative text
   const narrative = generateNarrative(score, detections);
-  console.log(`${INDENT}${chalk.white(narrative)}`);
+  console.log(`${INDENT}${chalk.white(wrapText(narrative))}`);
   console.log();
 
   // 5. Category bar chart
@@ -206,16 +244,7 @@ export function renderResults(
     console.log();
   }
 
-  // 10. Next tier hint
-  const next = getNextTier(score.tier.title);
-  if (next) {
-    console.log(
-      `${INDENT}${chalk.gray(`Next tier: ${next.title} (level ${next.minLevel}+)`)}`
-    );
-    console.log();
-  }
-
-  // 11. Bottom separator
+  // 10. Bottom separator
   console.log(`${INDENT}${chalk.gray(HEAVY_SEP)}`);
   console.log();
 }

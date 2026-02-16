@@ -69,7 +69,7 @@ export async function interactiveMerge(
   rl: RLInterface,
   result: ProbeResult,
   url: string,
-): Promise<void> {
+): Promise<ProbeResult | null> {
   // Submit current scan
   const submitOutcome = await submitResult({
     result,
@@ -80,7 +80,7 @@ export async function interactiveMerge(
 
   if (!submitOutcome.success) {
     console.error(chalk.red(`  Submit failed: ${submitOutcome.error}`));
-    return;
+    return null;
   }
 
   const handle = submitOutcome.handle;
@@ -94,7 +94,14 @@ export async function interactiveMerge(
   console.log(`    ${chalk.cyan(`npx vibecheck-score --merge-from ${handle}`)}`);
   console.log();
   console.log(`  ${chalk.gray("Or paste this for your AI assistant:")}`);
+  console.log();
+  console.log(`    ${chalk.dim("Please execute the following command in your terminal, to participate")}`);
+  console.log(`    ${chalk.dim(`in a Vibe Coder Score multi-machine merge at ${url}.`)}`);
+  console.log(`    ${chalk.dim("Before you run it, make sure you understand what it is and flag if")}`);
+  console.log(`    ${chalk.dim("anything is unsafe prior to proceeding.")}`);
+  console.log();
   console.log(`    ${chalk.dim(`Run: npx vibecheck-score --merge-from ${handle}`)}`);
+  console.log();
   console.log(`  ${chalk.gray(sep)}`);
   console.log();
 
@@ -148,7 +155,14 @@ export async function interactiveMerge(
         score: combinedScore,
       };
       await interactiveCompare(rl, mergedResult, url);
+      return mergedResult;
     }
+
+    return {
+      ...result,
+      detections: mergedDetections,
+      score: combinedScore,
+    };
   } else {
     // Cancelled or timed out
     console.log(`  No merged results yet.`);
@@ -159,5 +173,6 @@ export async function interactiveMerge(
     console.log(`  ${chalk.gray("Or merge manually:")}`);
     console.log(`    ${chalk.cyan(`npx vibecheck-score --merge-from ${handle}-merged`)}`);
     console.log();
+    return null;
   }
 }

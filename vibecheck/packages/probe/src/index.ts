@@ -21,7 +21,7 @@ import { GitHistoryScanner } from "./scanners/git-history.js";
 import { UniversalFileScanner, getSupersededMap } from "./scanners/universal-file.js";
 import chalk from "chalk";
 import { renderResults, createSpinner } from "./output/terminal.js";
-import { submitResult, compareApi, fetchRemoteDetections, postScanFlow } from "./flows/index.js";
+import { submitResult, compareApi, fetchRemoteDetections, postScanFlow, maybeMergeFirst } from "./flows/index.js";
 
 function getVersion(): string {
   try {
@@ -266,8 +266,21 @@ async function main(): Promise<void> {
 
   // --submit flow (flag-driven path)
   if (values.submit) {
+    // If --compare is set, offer merge-first prompt (interactive only)
+    let finalResult = result;
+    if (values.compare && process.stdin.isTTY && !values.yes) {
+      const rl = await import("node:readline/promises").then((m) =>
+        m.createInterface({ input: process.stdin, output: process.stdout })
+      );
+      try {
+        finalResult = await maybeMergeFirst(rl, result, url);
+      } finally {
+        rl.close();
+      }
+    }
+
     const submitOutcome = await submitResult({
-      result,
+      result: finalResult,
       handle: values.handle,
       url,
       skipConfirm: values.yes || isJson,

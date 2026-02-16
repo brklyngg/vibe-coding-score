@@ -47,46 +47,6 @@ const DIMENSION_COMMENTARY: Record<
   },
 };
 
-export const ARCHETYPE_NAMES: Record<string, string> = {
-  MARD: "The Orchestrator",
-  MARC: "The Methodist",
-  MARL: "The Strategist",
-  MACD: "The Planner",
-  MACL: "The Analyst",
-  MGRD: "The Engineer",
-  MGRL: "The Pragmatist",
-  MGCD: "The Sentinel",
-  MGCL: "The Scholar",
-  VARD: "The Powerhouse",
-  VARL: "The Maverick",
-  VACD: "The Experimenter",
-  VACL: "The Freelancer",
-  VGRD: "The Blitz Builder",
-  VGRL: "The Scrapper",
-  VGCD: "The Tinkerer",
-  VGCL: "The Explorer",
-};
-
-export const ARCHETYPE_DESCRIPTIONS: Record<string, string> = {
-  MARD: "Deep model expertise, autonomous agents, rigorous shipping, and a deep tool ecosystem.",
-  MARC: "Strategic model selection with autonomous agents, but shipping is measured and deliberate.",
-  MARL: "Smart model strategy with autonomous agents and rapid shipping, but a lighter tool footprint.",
-  MACD: "Master strategist with autonomous agents and deep tooling, but cautious on shipping.",
-  MACL: "Strategic thinker with autonomous agents in a lean setup. Quality over quantity.",
-  MGRD: "Model expertise paired with guided agents and rigorous process. You steer the ship.",
-  MGRL: "Smart model use, guided agents, and rapid shipping with a lean stack.",
-  MGCD: "Deep model knowledge, guided agents, cautious shipping, deep tools. The fortress.",
-  MGCL: "Thoughtful model strategy in a guided, lean setup. Methodical and measured.",
-  VARD: "Velocity-first with autonomous agents, rapid shipping, and deep tooling.",
-  VARL: "Speed plus autonomy plus rapid shipping. Light on tools but heavy on output.",
-  VACD: "Velocity seeker with autonomous agents, cautious shipping, and deep tools.",
-  VACL: "Fast, autonomous, cautious, light. Moves fast but picks battles carefully.",
-  VGRD: "Velocity is the vibe. Ships fast, integrates everything, but keeps the AI on a leash.",
-  VGRL: "Fast, guided, rapid, light. Does more with less and ships it yesterday.",
-  VGCD: "Velocity seeker who tinkers with deep tools under guided supervision.",
-  VGCL: "Fast-moving, guided, cautious, and light. Just getting started, but moving quick.",
-};
-
 const IMPROVEMENT_HINTS: Partial<Record<TaxonomyCategory, string>> = {
   ship: "Add a GitHub Actions workflow or deploy config to level up.",
   tooling: "Try connecting an MCP server — filesystem or GitHub are great starters.",
@@ -109,40 +69,47 @@ export function generateNarrative(
   score: ScoreResult,
   detections: Detection[]
 ): string {
-  const sorted = [...score.categories].sort(
-    (a, b) => b.score - a.score
-  );
-  const strongest = sorted[0];
-  // Find weakest category with score < 50 (last in sorted = lowest score)
-  const weakCandidates = sorted.filter((c) => c.score < 50);
-  const weakest = weakCandidates.length > 0
-    ? weakCandidates[weakCandidates.length - 1]
-    : undefined;
-
   const sentences: string[] = [];
 
-  // Strongest category commentary
-  sentences.push(commentaryForScore(strongest.category, strongest.score));
-
-  // Weakest category suggestion (with guardrail)
-  if (weakest && weakest.category !== strongest.category) {
-    const hint = IMPROVEMENT_HINTS[weakest.category];
-    if (hint && weakest.score < 30) {
-      sentences.push(hint);
-    } else {
-      sentences.push(
-        `${CATEGORY_LABELS[weakest.category]} is your biggest growth area.`
-      );
-    }
+  // MCP servers — extract server names from detection IDs
+  const mcpDetections = detections.filter((d) => d.id.startsWith("mcp-"));
+  if (mcpDetections.length > 0) {
+    const serverNames = mcpDetections.map((d) => d.id.replace(/^mcp-/, ""));
+    const maxShow = 3;
+    const shown = serverNames.slice(0, maxShow).join(", ");
+    const more = serverNames.length > maxShow ? ` and ${serverNames.length - maxShow} more` : "";
+    sentences.push(`Running ${mcpDetections.length} MCP server${mcpDetections.length === 1 ? "" : "s"} including ${shown}${more}.`);
   }
 
-  // MCP count mention
-  const mcpCount = detections.filter((d) =>
-    d.id.startsWith("mcp-")
-  ).length;
-  if (mcpCount > 3) {
+  // Named tools (custom skills, agents, commands)
+  const namedDetections = detections.filter(
+    (d) => d.details?.names && Array.isArray(d.details.names) && (d.details.names as string[]).length > 0
+  );
+  const totalNames = namedDetections.reduce(
+    (sum, d) => sum + (d.details!.names as string[]).length, 0
+  );
+  if (totalNames > 0) {
+    const allNames = namedDetections.flatMap((d) => d.details!.names as string[]);
+    const maxShow = 3;
+    const shown = allNames.slice(0, maxShow).join(", ");
+    const more = allNames.length > maxShow ? ` +${allNames.length - maxShow} more` : "";
+    sentences.push(`${totalNames} custom tool${totalNames === 1 ? "" : "s"} built (${shown}${more}).`);
+  }
+
+  // Pattern bonuses
+  const patterns = detections.filter((d) => d.id.startsWith("pattern:"));
+  if (patterns.length > 0) {
+    const patternNames = [...new Set(patterns.map((d) => d.name))];
+    sentences.push(`${patternNames.length} workflow pattern${patternNames.length === 1 ? "" : "s"} detected.`);
+  }
+
+  // Weakest category as growth area
+  const weakCandidates = [...score.categories]
+    .filter((c) => c.score < 50)
+    .sort((a, b) => a.score - b.score);
+  if (weakCandidates.length > 0) {
     sentences.push(
-      `${mcpCount} MCP servers connected — that's serious tool integration.`
+      `${CATEGORY_LABELS[weakCandidates[0].category]} is your biggest growth area.`
     );
   }
 

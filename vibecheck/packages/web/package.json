@@ -9,10 +9,11 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@vibe/scoring": "*",
+    "@anthropic-ai/sdk": "^0.74.0",
     "@supabase/supabase-js": "^2.93.3",
     "@vercel/og": "^0.6.4",
     "@vercel/otel": "^2.1.0",
+    "@vibe/scoring": "*",
     "next": "^15.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
