@@ -63,7 +63,15 @@ function isMulti(c: ConfigEntry): c is UFSCheckMulti {
 }
 
 // ---------------------------------------------------------------------------
-// Detection config — ~45 checks encoding the spec section 2.1
+// Check result — carries optional details (names, count) for dirChildren
+// ---------------------------------------------------------------------------
+interface CheckResult {
+  pass: boolean;
+  details?: Record<string, unknown>;
+}
+
+// ---------------------------------------------------------------------------
+// Detection config — ~70 checks encoding the spec section 2.1
 // Ordered highest-threshold-first per artifact for conditional-chain dedup
 // ---------------------------------------------------------------------------
 const CHECKS: ConfigEntry[] = [
@@ -114,6 +122,54 @@ const CHECKS: ConfigEntry[] = [
   // .claude/ exists
   { id: "ufs:claude-dir:exists", artifact: ".claude/", category: "tooling", tier: "basic", points: 3, signal: ".claude/ directory exists", check: "exists", scope: ["project"] },
 
+  // ── .claude/ agents, skills, commands, hooks (project scope) ───────────
+
+  // .claude/agents/ project scope (replaces AgentsScanner subagents)
+  { id: "ufs:claude-agents:extensive", artifact: ".claude/agents/", category: "autonomy", tier: "elite", points: 20, signal: ".claude/agents/ 5+ entries", check: "dirChildren", threshold: 4, scope: ["project"], supersedes: "subagents" },
+  { id: "ufs:claude-agents:moderate", artifact: ".claude/agents/", category: "autonomy", tier: "advanced", points: 10, signal: ".claude/agents/ 2+ entries", check: "dirChildren", threshold: 1, scope: ["project"], supersedes: "subagents" },
+  { id: "ufs:claude-agents:exists", artifact: ".claude/agents/", category: "autonomy", tier: "intermediate", points: 8, signal: ".claude/agents/ with agents", check: "dirChildren", threshold: 0, scope: ["project"], supersedes: "subagents" },
+
+  // .claude/skills/ project scope (replaces AgentsScanner claude-skills)
+  { id: "ufs:claude-skills:extensive", artifact: ".claude/skills/", category: "autonomy", tier: "elite", points: 20, signal: ".claude/skills/ 8+ entries", check: "dirChildren", threshold: 7, scope: ["project"], supersedes: "claude-skills" },
+  { id: "ufs:claude-skills:moderate", artifact: ".claude/skills/", category: "autonomy", tier: "advanced", points: 10, signal: ".claude/skills/ 3+ entries", check: "dirChildren", threshold: 2, scope: ["project"], supersedes: "claude-skills" },
+  { id: "ufs:claude-skills:exists", artifact: ".claude/skills/", category: "autonomy", tier: "intermediate", points: 8, signal: ".claude/skills/ with skills", check: "dirChildren", threshold: 0, scope: ["project"], supersedes: "claude-skills" },
+
+  // .claude/commands/ project scope (replaces AgentsScanner claude-commands)
+  { id: "ufs:claude-commands:extensive", artifact: ".claude/commands/", category: "tooling", tier: "advanced", points: 15, signal: ".claude/commands/ 8+ entries", check: "dirChildren", threshold: 7, scope: ["project"], supersedes: "claude-commands" },
+  { id: "ufs:claude-commands:moderate", artifact: ".claude/commands/", category: "tooling", tier: "intermediate", points: 10, signal: ".claude/commands/ 3+ entries", check: "dirChildren", threshold: 2, scope: ["project"], supersedes: "claude-commands" },
+  { id: "ufs:claude-commands:exists", artifact: ".claude/commands/", category: "tooling", tier: "basic", points: 5, signal: ".claude/commands/ with commands", check: "dirChildren", threshold: 0, scope: ["project"], supersedes: "claude-commands" },
+
+  // .claude/settings.json hooks (project scope, replaces AgentsScanner hooks)
+  { id: "ufs:claude-hooks:project", artifact: ".claude/settings.json", category: "autonomy", tier: "advanced", points: 10, signal: "Claude Code hooks configured", check: "jsonField", jsonPath: "hooks", threshold: 0, scope: ["project"], supersedes: "hooks" },
+
+  // ── .claude/ agents, skills, commands, hooks, rules, settings (global) ─
+
+  // .claude/agents/ global scope
+  { id: "ufs:claude-agents:global:extensive", artifact: ".claude/agents/", category: "autonomy", tier: "elite", points: 20, signal: "~/.claude/agents/ 5+ entries", check: "dirChildren", threshold: 4, scope: ["global"] },
+  { id: "ufs:claude-agents:global:moderate", artifact: ".claude/agents/", category: "autonomy", tier: "advanced", points: 10, signal: "~/.claude/agents/ 2+ entries", check: "dirChildren", threshold: 1, scope: ["global"] },
+  { id: "ufs:claude-agents:global", artifact: ".claude/agents/", category: "autonomy", tier: "intermediate", points: 8, signal: "~/.claude/agents/ with agents", check: "dirChildren", threshold: 0, scope: ["global"] },
+
+  // .claude/skills/ global scope
+  { id: "ufs:claude-skills:global:extensive", artifact: ".claude/skills/", category: "autonomy", tier: "elite", points: 20, signal: "~/.claude/skills/ 8+ entries", check: "dirChildren", threshold: 7, scope: ["global"] },
+  { id: "ufs:claude-skills:global:moderate", artifact: ".claude/skills/", category: "autonomy", tier: "advanced", points: 10, signal: "~/.claude/skills/ 3+ entries", check: "dirChildren", threshold: 2, scope: ["global"] },
+  { id: "ufs:claude-skills:global", artifact: ".claude/skills/", category: "autonomy", tier: "intermediate", points: 8, signal: "~/.claude/skills/ with skills", check: "dirChildren", threshold: 0, scope: ["global"] },
+
+  // .claude/commands/ global scope
+  { id: "ufs:claude-commands:global:extensive", artifact: ".claude/commands/", category: "tooling", tier: "advanced", points: 15, signal: "~/.claude/commands/ 8+ entries", check: "dirChildren", threshold: 7, scope: ["global"] },
+  { id: "ufs:claude-commands:global:moderate", artifact: ".claude/commands/", category: "tooling", tier: "intermediate", points: 10, signal: "~/.claude/commands/ 3+ entries", check: "dirChildren", threshold: 2, scope: ["global"] },
+  { id: "ufs:claude-commands:global", artifact: ".claude/commands/", category: "tooling", tier: "basic", points: 5, signal: "~/.claude/commands/ with commands", check: "dirChildren", threshold: 0, scope: ["global"] },
+
+  // .claude/settings.json hooks (global scope)
+  { id: "ufs:claude-hooks:global", artifact: ".claude/settings.json", category: "autonomy", tier: "advanced", points: 10, signal: "~/.claude/settings.json hooks", check: "jsonField", jsonPath: "hooks", threshold: 0, scope: ["global"] },
+
+  // .claude/rules/ (global scope)
+  { id: "ufs:claude-rules:global", artifact: ".claude/rules/", category: "continuity", tier: "intermediate", points: 8, signal: "~/.claude/rules/ split rules", check: "dirChildren", threshold: 0, scope: ["global"] },
+
+  // .claude/settings.json exists (global scope)
+  { id: "ufs:claude-settings:global", artifact: ".claude/settings.json", category: "tooling", tier: "basic", points: 3, signal: "~/.claude/settings.json exists", check: "exists", scope: ["global"] },
+
+  // ── Other AI Tool Customization ─────────────────────────────────────────
+
   // .cursorrules
   { id: "ufs:cursorrules:rich", artifact: ".cursorrules", category: "tooling", tier: "intermediate", points: 8, signal: ".cursorrules >30 lines", check: "lineCount", threshold: 30, scope: ["project"], supersedes: "cursorrules" },
   {
@@ -134,7 +190,7 @@ const CHECKS: ConfigEntry[] = [
   { id: "ufs:copilot-instructions:rich", artifact: ".github/copilot-instructions.md", category: "tooling", tier: "intermediate", points: 8, signal: "Copilot instructions >20 lines", check: "lineCount", threshold: 20, scope: ["project"], supersedes: "copilot-instructions" },
   { id: "ufs:copilot-instructions:exists", artifact: ".github/copilot-instructions.md", category: "tooling", tier: "basic", points: 3, signal: "Copilot instructions exist", check: "exists", scope: ["project"], supersedes: "copilot-instructions" },
 
-  // AGENTS.md
+  // AGENTS.md (project + global fallback)
   {
     emissions: [
       { id: "ufs:agents-md:deep", category: "continuity", tier: "advanced", points: 15, signal: "AGENTS.md >50 lines with behavioral keywords" },
@@ -144,12 +200,12 @@ const CHECKS: ConfigEntry[] = [
     check: "grepKeywords",
     threshold: 50,
     keywords: ["behavioral", "coordinate", "delegate", "autonomous", "agent", "role", "responsibility"],
-    scope: ["project"],
+    scope: ["project", "global"],
     supersedes: "agents-md",
   },
-  { id: "ufs:agents-md:exists", artifact: "AGENTS.md", category: "tooling", tier: "basic", points: 3, signal: "AGENTS.md exists", check: "exists", scope: ["project"], supersedes: "agents-md" },
+  { id: "ufs:agents-md:exists", artifact: "AGENTS.md", category: "tooling", tier: "basic", points: 3, signal: "AGENTS.md exists", check: "exists", scope: ["project", "global"], supersedes: "agents-md" },
 
-  // SOUL.md
+  // SOUL.md (project + global fallback)
   {
     emissions: [
       { id: "ufs:soul-md:rich", category: "continuity", tier: "intermediate", points: 10, signal: "SOUL.md >20 lines" },
@@ -158,10 +214,10 @@ const CHECKS: ConfigEntry[] = [
     artifact: "SOUL.md",
     check: "lineCount",
     threshold: 20,
-    scope: ["project"],
+    scope: ["project", "global"],
     supersedes: "soul-md",
   },
-  { id: "ufs:soul-md:exists", artifact: "SOUL.md", category: "continuity", tier: "basic", points: 5, signal: "SOUL.md exists", check: "exists", scope: ["project"], supersedes: "soul-md" },
+  { id: "ufs:soul-md:exists", artifact: "SOUL.md", category: "continuity", tier: "basic", points: 5, signal: "SOUL.md exists", check: "exists", scope: ["project", "global"], supersedes: "soul-md" },
 
   // USER.md
   { id: "ufs:user-md:exists", artifact: "USER.md", category: "continuity", tier: "basic", points: 3, signal: "USER.md exists", check: "exists", scope: ["project"] },
@@ -192,8 +248,8 @@ const CHECKS: ConfigEntry[] = [
   // HEARTBEAT.md
   { id: "ufs:heartbeat-md:exists", artifact: "HEARTBEAT.md", category: "autonomy", tier: "basic", points: 5, signal: "HEARTBEAT.md exists", check: "exists", scope: ["project"], supersedes: "heartbeat" },
 
-  // EVOLVE.md
-  { id: "ufs:evolve-md:exists", artifact: "EVOLVE.md", category: "continuity", tier: "basic", points: 5, signal: "EVOLVE.md exists", check: "exists", scope: ["project"], supersedes: "evolve-md" },
+  // EVOLVE.md (project + global fallback)
+  { id: "ufs:evolve-md:exists", artifact: "EVOLVE.md", category: "continuity", tier: "basic", points: 5, signal: "EVOLVE.md exists", check: "exists", scope: ["project", "global"], supersedes: "evolve-md" },
 
   // Handoff/session files
   { id: "ufs:handoff:exists", artifact: "handoff", category: "continuity", tier: "basic", points: 5, signal: "Handoff/session state files", check: "exists", scope: ["project"] },
@@ -335,12 +391,13 @@ async function checkLineCount(basePath: string, artifact: string, threshold: num
   return content.split("\n").length > threshold;
 }
 
-async function checkDirChildren(basePath: string, artifact: string, threshold: number): Promise<{ pass: boolean; count: number }> {
+async function checkDirChildren(basePath: string, artifact: string, threshold: number): Promise<{ pass: boolean; count: number; names: string[] }> {
   try {
     const entries = await readdir(join(basePath, artifact));
-    return { pass: entries.length > threshold, count: entries.length };
+    const names = entries.map(e => e.endsWith(".md") ? e.slice(0, -3) : e);
+    return { pass: entries.length > threshold, count: entries.length, names };
   } catch {
-    return { pass: false, count: 0 };
+    return { pass: false, count: 0, names: [] };
   }
 }
 
@@ -539,8 +596,8 @@ export class UniversalFileScanner implements Scanner {
             if (!depExists) continue;
           }
 
-          const pass = await runCheck(entry, basePath);
-          if (!pass) continue;
+          const result = await runCheck(entry, basePath);
+          if (!result.pass) continue;
 
           if (isMulti(entry)) {
             for (const em of entry.emissions) {
@@ -559,6 +616,7 @@ export class UniversalFileScanner implements Scanner {
                 taxonomyMatch: em.id,
                 points: em.points,
                 scanScope: scope,
+                ...(result.details ? { details: result.details } : {}),
               });
             }
           } else {
@@ -577,6 +635,7 @@ export class UniversalFileScanner implements Scanner {
               taxonomyMatch: entry.id,
               points: entry.points,
               scanScope: scope,
+              ...(result.details ? { details: result.details } : {}),
             });
           }
 
@@ -635,55 +694,58 @@ export class UniversalFileScanner implements Scanner {
 }
 
 // ---------------------------------------------------------------------------
-// Run a single check
+// Run a single check — returns pass + optional details (names/count)
 // ---------------------------------------------------------------------------
-async function runCheck(entry: ConfigEntry, basePath: string): Promise<boolean> {
+async function runCheck(entry: ConfigEntry, basePath: string): Promise<CheckResult> {
   const checkType = entry.check;
   const artifact = entry.artifact;
 
   switch (checkType) {
     case "exists":
-      return checkExists(basePath, artifact);
+      return { pass: await checkExists(basePath, artifact) };
 
     case "lineCount": {
       const threshold = ("threshold" in entry ? entry.threshold : undefined) ?? 0;
-      return checkLineCount(basePath, artifact, threshold);
+      return { pass: await checkLineCount(basePath, artifact, threshold) };
     }
 
     case "dirChildren": {
       const threshold = ("threshold" in entry ? entry.threshold : undefined) ?? 0;
       const result = await checkDirChildren(basePath, artifact, threshold);
-      return result.pass;
+      return {
+        pass: result.pass,
+        details: result.pass ? { count: result.count, names: result.names } : undefined,
+      };
     }
 
     case "grepKeywords": {
       const keywords = ("keywords" in entry ? entry.keywords : undefined) ?? [];
       const threshold = "threshold" in entry ? entry.threshold : undefined;
-      return checkGrepKeywords(basePath, artifact, keywords, threshold);
+      return { pass: await checkGrepKeywords(basePath, artifact, keywords, threshold) };
     }
 
     case "jsonField": {
       const jsonPath = ("jsonPath" in entry ? entry.jsonPath : undefined) ?? "";
       const threshold = ("threshold" in entry ? entry.threshold : undefined) ?? 0;
-      return checkJsonField(basePath, artifact, jsonPath, threshold);
+      return { pass: await checkJsonField(basePath, artifact, jsonPath, threshold) };
     }
 
     case "shell": {
       const keywords = ("keywords" in entry ? entry.keywords : undefined) ?? [];
-      return checkShell(artifact, keywords);
+      return { pass: await checkShell(artifact, keywords) };
     }
 
     case "testRatio": {
       const threshold = ("threshold" in entry ? entry.threshold : undefined) ?? 0;
       const result = await checkTestRatio(basePath, threshold);
-      return result.pass;
+      return { pass: result.pass };
     }
 
     case "filePermission":
-      return checkFilePermission(basePath, artifact);
+      return { pass: await checkFilePermission(basePath, artifact) };
 
     default:
-      return false;
+      return { pass: false };
   }
 }
 

@@ -10,7 +10,7 @@ import { computeScore } from "@vibe/scoring";
 import { runAllScanners } from "./scanners/index.js";
 import { EnvironmentScanner } from "./scanners/environment.js";
 import { McpScanner } from "./scanners/mcp.js";
-import { AgentsScanner } from "./scanners/agents.js";
+
 import { OrchestrationScanner } from "./scanners/orchestration.js";
 import { RepositoriesScanner } from "./scanners/repositories.js";
 import { MemoryScanner } from "./scanners/memory.js";
@@ -102,11 +102,12 @@ async function main(): Promise<void> {
 
   Project files:    CLAUDE.md, package.json, .gitignore, tsconfig.json, ...
   Config dirs:      .claude/, .cursor/ (file names only, not contents)
+  Global config:    ~/.claude/ (skills/agents/commands — names only, deep mode)
   Shell presence:   grep for API key names in ~/.zshrc etc. (values never read)
   Git history:      commit messages, branch names, file change stats
   Tool detection:   which claude, which cursor, etc.
 
-  Use --shallow to skip global checks (crontab, LaunchAgents).
+  Use --shallow to skip global checks (crontab, LaunchAgents, ~/.claude/).
   Use --json for machine-readable output with no prompts.
 `);
       const rl = await import("node:readline/promises").then((m) =>
@@ -126,7 +127,6 @@ async function main(): Promise<void> {
   const scanners = [
     new EnvironmentScanner(),
     new McpScanner(),
-    new AgentsScanner(),
     new OrchestrationScanner(),
     new RepositoriesScanner(),
     new MemoryScanner(),

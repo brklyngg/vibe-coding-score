@@ -184,6 +184,36 @@
   { "id": "ufs:cron:ai", "name": "AI crontab entries", "category": "autonomy", "tier": "basic", "signals": ["crontab AI"] },
   { "id": "ufs:launchd:ai", "name": "AI launchd services", "category": "autonomy", "tier": "basic", "signals": ["launchctl AI"] },
 
+  { "id": "ufs:claude-agents:extensive", "name": "5+ custom agents", "category": "autonomy", "tier": "elite", "signals": [".claude/agents/ 5+"] },
+  { "id": "ufs:claude-agents:moderate", "name": "2+ custom agents", "category": "autonomy", "tier": "advanced", "signals": [".claude/agents/ 2+"] },
+  { "id": "ufs:claude-agents:exists", "name": "Custom agents", "category": "autonomy", "tier": "intermediate", "signals": [".claude/agents/"] },
+
+  { "id": "ufs:claude-skills:extensive", "name": "8+ custom skills", "category": "autonomy", "tier": "elite", "signals": [".claude/skills/ 8+"] },
+  { "id": "ufs:claude-skills:moderate", "name": "3+ custom skills", "category": "autonomy", "tier": "advanced", "signals": [".claude/skills/ 3+"] },
+  { "id": "ufs:claude-skills:exists", "name": "Custom skills", "category": "autonomy", "tier": "intermediate", "signals": [".claude/skills/"] },
+
+  { "id": "ufs:claude-commands:extensive", "name": "8+ custom commands", "category": "tooling", "tier": "advanced", "signals": [".claude/commands/ 8+"] },
+  { "id": "ufs:claude-commands:moderate", "name": "3+ custom commands", "category": "tooling", "tier": "intermediate", "signals": [".claude/commands/ 3+"] },
+  { "id": "ufs:claude-commands:exists", "name": "Custom commands", "category": "tooling", "tier": "basic", "signals": [".claude/commands/"] },
+
+  { "id": "ufs:claude-hooks:project", "name": "Claude Code hooks", "category": "autonomy", "tier": "advanced", "signals": [".claude/settings.json hooks"] },
+
+  { "id": "ufs:claude-agents:global:extensive", "name": "5+ global agents", "category": "autonomy", "tier": "elite", "signals": ["~/.claude/agents/ 5+"] },
+  { "id": "ufs:claude-agents:global:moderate", "name": "2+ global agents", "category": "autonomy", "tier": "advanced", "signals": ["~/.claude/agents/ 2+"] },
+  { "id": "ufs:claude-agents:global", "name": "Global agents", "category": "autonomy", "tier": "intermediate", "signals": ["~/.claude/agents/"] },
+
+  { "id": "ufs:claude-skills:global:extensive", "name": "8+ global skills", "category": "autonomy", "tier": "elite", "signals": ["~/.claude/skills/ 8+"] },
+  { "id": "ufs:claude-skills:global:moderate", "name": "3+ global skills", "category": "autonomy", "tier": "advanced", "signals": ["~/.claude/skills/ 3+"] },
+  { "id": "ufs:claude-skills:global", "name": "Global skills", "category": "autonomy", "tier": "intermediate", "signals": ["~/.claude/skills/"] },
+
+  { "id": "ufs:claude-commands:global:extensive", "name": "8+ global commands", "category": "tooling", "tier": "advanced", "signals": ["~/.claude/commands/ 8+"] },
+  { "id": "ufs:claude-commands:global:moderate", "name": "3+ global commands", "category": "tooling", "tier": "intermediate", "signals": ["~/.claude/commands/ 3+"] },
+  { "id": "ufs:claude-commands:global", "name": "Global commands", "category": "tooling", "tier": "basic", "signals": ["~/.claude/commands/"] },
+
+  { "id": "ufs:claude-hooks:global", "name": "Global Claude hooks", "category": "autonomy", "tier": "advanced", "signals": ["~/.claude/settings.json hooks"] },
+  { "id": "ufs:claude-rules:global", "name": "Global split rules", "category": "continuity", "tier": "intermediate", "signals": ["~/.claude/rules/"] },
+  { "id": "ufs:claude-settings:global", "name": "Global settings", "category": "tooling", "tier": "basic", "signals": ["~/.claude/settings.json"] },
+
   { "id": "ufs:monorepo:large", "name": "Large monorepo", "category": "ops", "tier": "basic", "signals": [">5 workspaces"] },
   { "id": "ufs:monorepo:ai-consistent", "name": "Consistent AI config", "category": "tooling", "tier": "basic", "signals": ["CLAUDE.md across workspaces"] },
 
