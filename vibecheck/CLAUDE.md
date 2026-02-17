@@ -28,9 +28,9 @@ vibecheck/
 │       │   ├── merge.ts           # interactiveMerge() + fetchRemoteDetections() — multi-machine merge (returns ProbeResult | null)
 │       │   └── post-scan.ts       # postScanFlow() — 3-option interactive menu after every scan
 │       ├── taxonomy/
-│       │   ├── registry.json      # 171-entry lookup table (id, name, category, tier, signals)
+│       │   ├── registry.json      # ~200-entry lookup table (id, name, category, tier, signals)
 │       │   └── classifier.ts      # RawFinding → Detection[] via registry lookup
-│       ├── scanners/              # 11 scanners (environment, mcp, agents, orchestration, repositories, memory, security, deploy, social, git-history, universal-file)
+│       ├── scanners/              # 10 scanners (environment, mcp, orchestration, repositories, memory, security, deploy, social, git-history, universal-file)
 │       └── output/
 │           ├── terminal.ts        # chalk + ora rich CLI output (wrapText helper, expanded taxonomy table, no next-tier)
 │           └── narrative.ts       # Data-driven narrative: references MCP server names, tool names, pattern counts
@@ -101,9 +101,9 @@ Observer (0-10) → Apprentice (11-20) → Practitioner (21-30) → Builder (31-
 
 ## Scanner Pipeline
 
-The probe runs 11 scanners in parallel via `Promise.allSettled` (9 v2 scanners + GitHistoryScanner + UniversalFileScanner last). After all scanners complete, artifact-level dedup suppresses v2 detections when UFS covers the same artifact. Remaining detections are deduped by ID and fed into `computeScore()`.
+The probe runs 10 scanners in parallel via `Promise.allSettled` (8 v2 scanners + GitHistoryScanner + UniversalFileScanner last). After all scanners complete, artifact-level dedup suppresses v2 detections when UFS covers the same artifact. Remaining detections are deduped by ID and fed into `computeScore()`.
 
-**UFS architecture:** One config-driven scanner with ~50 checks and 6 check functions. Checks are ordered highest-threshold-first per artifact; conditional chains emit only the highest match per (artifact, category) pair. Scopes (`project`/`workspace`/`global`) control where checks run; global scope runs by default (use `--shallow` to skip).
+**UFS architecture:** One config-driven scanner with ~70 checks and 6 check functions. Checks are ordered highest-threshold-first per artifact; conditional chains emit only the highest match per (artifact, category) pair. Scopes (`project`/`workspace`/`global`) control where checks run; global scope runs by default (use `--shallow` to skip). Global scope scans `~/.claude/` for agents, skills, commands, hooks, rules, and settings — returning entry names (with `.md` stripped) in detection details. Project-scope detections win over global via `emittedArtifactCategory` dedup. AGENTS.md, SOUL.md, and EVOLVE.md fall back to global when absent from the project.
 
 Terminal output: top separator → VIBE CODER SCORE header → level/tier + tagline → narrative (data-driven with tool names) → category bar chart → WHAT WE FOUND (expanded taxonomy table with sub-lines for named detections) → key mechanisms → pioneer badge → GROWTH AREAS → bottom separator.
 
