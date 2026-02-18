@@ -30,40 +30,42 @@ async function pollForMergedResult(
   const deadline = Date.now() + timeoutMs;
   let cancelled = false;
 
-  // Allow cancel via Enter keypress
-  const cancelPromise = new Promise<void>((resolve) => {
-    if (!process.stdin.isTTY) {
-      resolve();
-      return;
-    }
-    const onData = () => {
-      cancelled = true;
-      process.stdin.removeListener("data", onData);
-      resolve();
-    };
-    process.stdin.once("data", onData);
-    // Clean up listener at deadline
-    setTimeout(() => {
-      process.stdin.removeListener("data", onData);
-      resolve();
-    }, timeoutMs);
-  });
+  // Cancel listener — extracted so finally{} can clean it up
+  const onData = () => { cancelled = true; };
+  let cleanupTimer: ReturnType<typeof setTimeout> | undefined;
 
-  while (Date.now() < deadline && !cancelled) {
-    try {
-      const detections = await fetchRemoteDetections(mergedHandle, url);
-      return detections;
-    } catch {
-      // 404 or other error — not ready yet
-    }
-    // Wait intervalMs or until cancelled
-    await Promise.race([
-      new Promise((r) => setTimeout(r, intervalMs)),
-      cancelPromise,
-    ]);
+  if (process.stdin.isTTY) {
+    process.stdin.once("data", onData);
+    cleanupTimer = setTimeout(() => {
+      process.stdin.removeListener("data", onData);
+    }, timeoutMs);
   }
 
-  return null;
+  try {
+    while (Date.now() < deadline && !cancelled) {
+      try {
+        const detections = await fetchRemoteDetections(mergedHandle, url);
+        return detections;
+      } catch {
+        // 404 or other error — not ready yet
+      }
+      // Wait intervalMs or until cancelled
+      await Promise.race([
+        new Promise((r) => setTimeout(r, intervalMs)),
+        new Promise<void>((resolve) => {
+          const check = setInterval(() => {
+            if (cancelled) { clearInterval(check); resolve(); }
+          }, 200);
+          setTimeout(() => { clearInterval(check); resolve(); }, intervalMs);
+        }),
+      ]);
+    }
+    return null;
+  } finally {
+    // Always clean up — prevents dangling listener from eating readline input
+    process.stdin.removeListener("data", onData);
+    if (cleanupTimer) clearTimeout(cleanupTimer);
+  }
 }
 
 export async function interactiveMerge(
