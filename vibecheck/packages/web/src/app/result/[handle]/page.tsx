@@ -19,7 +19,7 @@ import {
 } from "@/lib/narrative-templates";
 import { CopyUrlButton } from "@/components/CopyUrlButton";
 import { AnalysisSection } from "@/components/AnalysisSection";
-import { MOCK_RESULT } from "@/lib/mock-data";
+import { MOCK_RESULT, MOCK_ANALYSIS } from "@/lib/mock-data";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let _supabase: ReturnType<typeof createClient<any>> | null = null;
@@ -307,7 +307,7 @@ export default async function ResultPage({ params }: PageProps) {
         )}
 
         {/* Analysis section (only visible to authenticated owner) */}
-        <AnalysisSection handle={handle} />
+        <AnalysisSection handle={handle} mockAnalysis={handle === "demo" ? MOCK_ANALYSIS : undefined} />
 
         {/* Bottom separator */}
         <p className="text-white/30">{HEAVY_SEP}</p>

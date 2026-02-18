@@ -296,6 +296,11 @@ export const MOCK_RESULT: ProbeResult = {
   score: MOCK_SCORE,
 };
 
+// Mock analysis text for the /result/demo page (written in the concise new voice)
+export const MOCK_ANALYSIS = `You're running three model providers (Anthropic, OpenAI, Gemini) with routing aliases — that means you can dispatch to the right model per task instead of defaulting to one. The 7 MCP servers give Claude Code direct access to GitHub, Supabase, Google Drive, Obsidian, and Brave Search without leaving the terminal. Pair that with custom subagents and hooks, and you've basically built an autonomous pipeline where Claude can research, write, deploy, and document without you context-switching.
+
+The split rules directory and 120-line CLAUDE.md show you're investing in persistence — your agent remembers project conventions across sessions, which is where most setups fall short. Worth looking at: adding a pre-commit hook via Claude hooks to run lint/typecheck automatically, wiring up an MCP server for Vercel or Netlify so deploys happen in-conversation, and setting up structured logging in your CI so Claude can self-diagnose failed builds.`;
+
 // A simpler "Observer" level mock for testing lower tiers
 export const MOCK_OBSERVER_DETECTIONS: Detection[] = [
   {

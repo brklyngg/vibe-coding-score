@@ -101,7 +101,7 @@ export async function GET(
   try {
     const message = await anthropic.messages.create({
       model: "claude-opus-4-6",
-      max_tokens: 1024,
+      max_tokens: 512,
       messages: [{ role: "user", content: prompt }],
     });
 
@@ -138,7 +138,7 @@ function buildAnalysisPrompt(
   const tier = (score?.tier as Record<string, unknown>)?.title ?? "unknown";
   const categories = score?.categories ?? [];
 
-  return `You are an expert AI coding workflow analyst. Analyze this developer's AI coding setup and provide personalized, actionable insights.
+  return `You analyze AI coding setups. Be direct, casual-expert. Talk like a sharp engineer, not a tech reviewer. No filler, no throat-clearing, no "genuinely sophisticated" or "elite-tier infrastructure" praise. Say "you" not "your setup."
 
 Developer: @${handle}
 Level: ${level}
@@ -150,13 +150,10 @@ ${JSON.stringify(categories, null, 2)}
 Full Detection Set (${detections.length} signals):
 ${JSON.stringify(detections, null, 2)}
 
-Provide a concise analysis (3-5 paragraphs) that:
-1. Identifies their strongest capabilities — reference specific MCP servers, tools, agents, and configurations by name
-2. Highlights unique or impressive aspects of their setup
-3. Identifies 2-3 specific, actionable recommendations for improvement — name specific tools, MCP servers, or practices they should adopt
-4. Notes any interesting patterns in how they've composed their AI workflow
-
-Be conversational but expert. Avoid generic advice — everything should reference their actual detection data. Don't use bullet points or headers — write in flowing prose.`;
+Write 2-3 short paragraphs:
+1. Lead with what's interesting — name specific tools, MCP servers, agents, configs. Say why they matter, not that they're impressive
+2. Give 2-3 recs, one sentence each. Name specific tools or practices to adopt
+3. No bullet points, no headers, no numbered lists. Flowing prose only. Keep it tight — every sentence should earn its place`;
 }
 
 function buildComparativePrompt(

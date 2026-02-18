@@ -9,7 +9,26 @@ interface Message {
   content: string;
 }
 
-export function AnalysisSection({ handle }: { handle: string }) {
+export function AnalysisSection({ handle, mockAnalysis }: { handle: string; mockAnalysis?: string }) {
+  // Mock analysis: static render, no hooks needed
+  if (mockAnalysis) {
+    return (
+      <>
+        <p className="font-bold text-white">DETAILED ANALYSIS</p>
+        <p className="text-white/30">{"─".repeat(52)}</p>
+        <br />
+        <div className="text-white/80 whitespace-pre-wrap leading-relaxed">
+          {mockAnalysis}
+        </div>
+        <br />
+      </>
+    );
+  }
+
+  return <LiveAnalysis handle={handle} />;
+}
+
+function LiveAnalysis({ handle }: { handle: string }) {
   const [token, setToken] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
