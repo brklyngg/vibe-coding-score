@@ -3,6 +3,7 @@ import type { ProbeResult } from "@vibe/scoring";
 import chalk from "chalk";
 import { submitResult } from "./submit.js";
 import { interactiveMerge } from "./merge.js";
+import { openBrowser } from "../utils/open.js";
 
 export interface CompareResult {
   code?: string;
@@ -114,6 +115,9 @@ export async function interactiveCompare(
     console.log(`  View the comparison:`);
     console.log(`    ${chalk.cyan(cmpResult.url)}`);
     console.log();
+    if (cmpResult.url) {
+      openBrowser(cmpResult.url);
+    }
   } else {
     // Create new comparison
     const cmpResult = await compareApi({
@@ -141,5 +145,6 @@ export async function interactiveCompare(
     console.log(`    ${chalk.cyan(compareUrl)}`);
     console.log(`  ${chalk.gray(sep)}`);
     console.log();
+    openBrowser(compareUrl);
   }
 }

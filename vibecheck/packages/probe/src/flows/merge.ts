@@ -5,6 +5,7 @@ import chalk from "chalk";
 import { submitResult } from "./submit.js";
 import { renderResults, createSpinner } from "../output/terminal.js";
 import { interactiveCompare } from "./compare.js";
+import { openBrowser } from "../utils/open.js";
 
 export async function fetchRemoteDetections(
   handle: string,
@@ -139,33 +140,53 @@ export async function interactiveMerge(
     const combinedScore = computeScore(mergedDetections);
     renderResults(combinedScore, mergedDetections);
 
-    // Post-merge compare option
+    const mergedResult: ProbeResult = {
+      ...result,
+      detections: mergedDetections,
+      score: combinedScore,
+    };
+
+    // Submit merged result to get updated analysis URL
+    const mergeSubmit = await submitResult({
+      result: mergedResult,
+      url,
+      skipConfirm: true,
+      silent: true,
+    });
+
+    const mergedAnalysisUrl = mergeSubmit.success && mergeSubmit.url && mergeSubmit.token
+      ? `${mergeSubmit.url}?token=${mergeSubmit.token}`
+      : null;
+
+    if (mergedAnalysisUrl) {
+      console.log(`  ${chalk.green("✓")} Updated analysis: ${chalk.cyan(mergedAnalysisUrl)}`);
+      console.log();
+    }
+
+    // Post-merge menu
     const postSep = "─".repeat(42);
     console.log();
     console.log(`  ${chalk.bold.white("WHAT'S NEXT?")}`);
     console.log(`  ${chalk.gray(postSep)}`);
     console.log(`  ${chalk.white("[1]")} Compare with a friend/colleague`);
-    console.log(`  ${chalk.white("[2]")} Done ${chalk.gray("(or press Enter)")}`);
+    if (mergedAnalysisUrl) {
+      console.log(`  ${chalk.green("[Enter]")} View your full analysis in browser`);
+    } else {
+      console.log(`  ${chalk.white("[Enter]")} Done`);
+    }
     console.log(`  ${chalk.gray(postSep)}`);
 
     const answer = await rl.question(`\n  Choice: `);
     const choice = answer.trim();
 
     if (choice === "1") {
-      const mergedResult: ProbeResult = {
-        ...result,
-        detections: mergedDetections,
-        score: combinedScore,
-      };
       await interactiveCompare(rl, mergedResult, url);
       return mergedResult;
+    } else if (mergedAnalysisUrl) {
+      openBrowser(mergedAnalysisUrl);
     }
 
-    return {
-      ...result,
-      detections: mergedDetections,
-      score: combinedScore,
-    };
+    return mergedResult;
   } else {
     // Cancelled or timed out
     console.log(`  No merged results yet.`);
