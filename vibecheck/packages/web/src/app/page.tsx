@@ -1,6 +1,18 @@
 import Image from "next/image";
 import Link from "next/link";
 import { CommandBlock } from "@/components/CommandBlock";
+
+const DIMENSIONS = [
+  { name: "Intelligence", desc: "Models, providers, routing" },
+  { name: "Autonomy", desc: "Agents, subagents, orchestration" },
+  { name: "Tooling", desc: "CLI tools, MCP servers, IDE" },
+  { name: "Ship", desc: "CI/CD, testing, deployment" },
+  { name: "Continuity", desc: "Memory, context, handoff" },
+  { name: "Security", desc: "Secrets, permissions, protection" },
+  { name: "Ops", desc: "Build scripts, linting, monitoring" },
+  { name: "Social", desc: "Public repos, community presence" },
+] as const;
+
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-8">
@@ -18,17 +30,36 @@ export default function Home() {
           className="mb-8 mt-2 w-full rounded-xl border border-white/10"
         />
 
-        {/* What it does */}
-        <p className="mb-6 text-lg leading-relaxed text-white/60">
-          Vibecheck scans your machine for AI tool configs, MCP server setups,
-          git metadata, and workflow patterns — reading config file{" "}
-          <em>names</em> and tool presence, never file contents or source code.
-          Nothing leaves your machine unless you explicitly run{" "}
-          <code className="text-white/70">--submit</code>.
+        {/* Subhead */}
+        <p className="mb-8 text-lg leading-relaxed text-white/60">
+          One command scans your AI tools, configs, and workflows
+          and maps them against 8 dimensions of AI-native development.
+          See your tier. See what you&apos;re missing.
         </p>
 
+        {/* 8 Dimensions */}
+        <div className="mb-8">
+          <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-white/50">
+            8 dimensions · 200+ signals
+          </p>
+          <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+            {DIMENSIONS.map((d) => (
+              <div key={d.name}>
+                <p className="text-[15px] font-semibold text-white/80">{d.name}</p>
+                <p className="text-sm text-white/50">{d.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Command block */}
+        <p className="mb-2 text-base font-medium text-white/70">
+          Run this in your terminal
+        </p>
+        <CommandBlock command="npx vibecheck-score" />
+
         {/* What it does NOT do */}
-        <div className="mb-8 rounded-xl border border-white/10 bg-white/[0.03] p-5">
+        <div className="mt-8 mb-8 rounded-xl border border-white/10 bg-white/[0.03] p-5">
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-widest text-white/50">
             What it does not do
           </h2>
@@ -58,49 +89,9 @@ export default function Home() {
           </ul>
         </div>
 
-        {/* Command block */}
-        <p className="mb-2 text-base font-medium text-white/70">
-          Run this in your terminal
-        </p>
-        <CommandBlock command="npx vibecheck-score" />
-
-        {/* What you get — grid */}
-        <div className="mt-8 mb-6">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-widest text-white/50">
-            What you get
-          </h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-left">
-              <p className="mb-1 text-base font-semibold text-white/80">Tier & Level</p>
-              <p className="text-sm text-white/60">
-                A 0-100 score across 9 tiers from Observer to Industrialist.
-              </p>
-            </div>
-            <a
-              href="https://docs.google.com/spreadsheets/d/11akbpKFVzdVMtr_tw_1A7VJsZpmVL7Q2yW0gBh66gT4/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-lg border border-white/10 bg-white/5 p-4 text-left transition hover:border-indigo-400/30"
-            >
-              <p className="mb-1 text-base font-semibold text-white/80">
-                Taxonomy →
-              </p>
-              <p className="text-sm text-white/60">
-                Every signal the probe found, grouped by category with tier badges.
-              </p>
-            </a>
-            <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-left">
-              <p className="mb-1 text-base font-semibold text-white/80">Growth Map</p>
-              <p className="text-sm text-white/60">
-                Your weakest categories with specific feedback on what to add next.
-              </p>
-            </div>
-          </div>
-        </div>
-
         <a
           href="/result/demo"
-          className="mt-4 mb-6 inline-block text-base font-medium text-indigo-400 underline underline-offset-4 hover:text-indigo-300"
+          className="mb-6 inline-block text-base font-medium text-indigo-400 underline underline-offset-4 hover:text-indigo-300"
         >
           See a sample result →
         </a>
