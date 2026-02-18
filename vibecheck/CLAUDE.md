@@ -123,7 +123,7 @@ Terminal output: top separator → VIBE CODER SCORE header → level/tier + tagl
 
 ## Post-Scan Flow
 
-After every interactive scan (non-JSON, non-flag), results are auto-submitted silently and the analysis URL is displayed in a prominent green box. The menu offers merge, compare, or Enter to open the analysis in the browser (via `openBrowser()` in `utils/open.ts`). If submit fails (offline), Enter simply exits. Merge and compare flows also auto-open their respective URLs. The compare path includes a `maybeMergeFirst()` prompt before joining, available in both flag (`--compare`) and interactive paths.
+After every interactive scan (non-JSON, non-flag), results are auto-submitted silently and the analysis URL is displayed in a prominent green box. The post-scan menu is a non-destructive loop: Enter opens the browser then re-shows remaining options (merge, compare); choosing merge or compare runs that flow, removes it from the menu, re-displays the analysis URL box, and loops. The menu exits when no numbered options remain and the browser has been opened, or the user presses Enter on "Done." The post-merge menu inside `interactiveMerge()` follows the same loop pattern with [1] Compare + [Enter]. If submit fails (offline), Enter simply exits. The compare path includes a `maybeMergeFirst()` prompt before joining, available in both flag (`--compare`) and interactive paths.
 
 ## Compare Mode
 
