@@ -163,27 +163,54 @@ export async function interactiveMerge(
       console.log();
     }
 
-    // Post-merge menu
-    const postSep = "─".repeat(42);
-    console.log();
-    console.log(`  ${chalk.bold.white("WHAT'S NEXT?")}`);
-    console.log(`  ${chalk.gray(postSep)}`);
-    console.log(`  ${chalk.white("[1]")} Compare with a friend/colleague`);
-    if (mergedAnalysisUrl) {
-      console.log(`  ${chalk.green("[Enter]")} View your full analysis in browser`);
-    } else {
-      console.log(`  ${chalk.white("[Enter]")} Done`);
-    }
-    console.log(`  ${chalk.gray(postSep)}`);
+    // Post-merge menu loop
+    let browserOpened = false;
+    let compareAvailable = true;
 
-    const answer = await rl.question(`\n  Choice: `);
-    const choice = answer.trim();
+    while (true) {
+      const postSep = "─".repeat(42);
+      console.log();
+      console.log(`  ${chalk.bold.white("WHAT'S NEXT?")}`);
+      console.log(`  ${chalk.gray(postSep)}`);
+      if (compareAvailable) {
+        console.log(`  ${chalk.white("[1]")} Compare with a friend/colleague`);
+      }
+      if (mergedAnalysisUrl && !browserOpened) {
+        console.log(`  ${chalk.green("[Enter]")} View your full analysis in browser`);
+      } else {
+        console.log(`  ${chalk.white("[Enter]")} Done`);
+      }
+      console.log(`  ${chalk.gray(postSep)}`);
 
-    if (choice === "1") {
-      await interactiveCompare(rl, mergedResult, url);
-      return mergedResult;
-    } else if (mergedAnalysisUrl) {
-      openBrowser(mergedAnalysisUrl);
+      const answer = await rl.question(`\n  Choice: `);
+      const choice = answer.trim();
+
+      if (choice === "1" && compareAvailable) {
+        await interactiveCompare(rl, mergedResult, url);
+        compareAvailable = false;
+        if (mergedAnalysisUrl) {
+          const label = "Your AI-powered analysis is ready:";
+          const width = Math.max(label.length, mergedAnalysisUrl.length) + 4;
+          const border = "─".repeat(width);
+          console.log();
+          console.log(`  ${chalk.green("┌" + border + "┐")}`);
+          console.log(`  ${chalk.green("│")}  ${chalk.bold.white(label)}${" ".repeat(width - label.length - 2)}${chalk.green("│")}`);
+          console.log(`  ${chalk.green("│")}  ${chalk.cyan(mergedAnalysisUrl)}${" ".repeat(width - mergedAnalysisUrl.length - 2)}${chalk.green("│")}`);
+          console.log(`  ${chalk.green("└" + border + "┘")}`);
+        }
+      } else {
+        // Enter or unrecognized
+        if (mergedAnalysisUrl && !browserOpened) {
+          openBrowser(mergedAnalysisUrl);
+          browserOpened = true;
+          if (!compareAvailable) break;
+          // Loop back to show remaining options
+        } else {
+          break;
+        }
+      }
+
+      if (!compareAvailable && browserOpened) break;
     }
 
     return mergedResult;
