@@ -25,47 +25,27 @@ async function pollForMergedResult(
   url: string,
   timeoutMs: number = 300_000,
   intervalMs: number = 5_000,
+  isCancelled: () => boolean = () => false,
 ): Promise<Detection[] | null> {
   const mergedHandle = `${handle}-merged`;
   const deadline = Date.now() + timeoutMs;
-  let cancelled = false;
 
-  // Cancel listener — extracted so finally{} can clean it up
-  const onData = () => { cancelled = true; };
-  let cleanupTimer: ReturnType<typeof setTimeout> | undefined;
-
-  if (process.stdin.isTTY) {
-    process.stdin.once("data", onData);
-    cleanupTimer = setTimeout(() => {
-      process.stdin.removeListener("data", onData);
-    }, timeoutMs);
-  }
-
-  try {
-    while (Date.now() < deadline && !cancelled) {
-      try {
-        const detections = await fetchRemoteDetections(mergedHandle, url);
-        return detections;
-      } catch {
-        // 404 or other error — not ready yet
-      }
-      // Wait intervalMs or until cancelled
-      await Promise.race([
-        new Promise((r) => setTimeout(r, intervalMs)),
-        new Promise<void>((resolve) => {
-          const check = setInterval(() => {
-            if (cancelled) { clearInterval(check); resolve(); }
-          }, 200);
-          setTimeout(() => { clearInterval(check); resolve(); }, intervalMs);
-        }),
-      ]);
+  while (Date.now() < deadline && !isCancelled()) {
+    try {
+      const detections = await fetchRemoteDetections(mergedHandle, url);
+      return detections;
+    } catch {
+      // 404 or other error — not ready yet
     }
-    return null;
-  } finally {
-    // Always clean up — prevents dangling listener from eating readline input
-    process.stdin.removeListener("data", onData);
-    if (cleanupTimer) clearTimeout(cleanupTimer);
+    // Wait intervalMs or until cancelled
+    await new Promise<void>((resolve) => {
+      const check = setInterval(() => {
+        if (isCancelled()) { clearInterval(check); resolve(); }
+      }, 200);
+      setTimeout(() => { clearInterval(check); resolve(); }, intervalMs);
+    });
   }
+  return null;
 }
 
 export async function interactiveMerge(
@@ -116,20 +96,14 @@ export async function interactiveMerge(
   const spinner = createSpinner("Polling for merged results...");
   spinner.start();
 
-  // Set stdin to raw-ish mode so we can detect Enter
-  const wasRaw = process.stdin.isRaw;
-  if (process.stdin.isTTY && process.stdin.setRawMode) {
-    process.stdin.setRawMode(true);
-  }
-  process.stdin.resume();
+  // Cancel detection via readline (keeps stdin state clean for rl.question() after)
+  let cancelled = false;
+  const cancelHandler = () => { cancelled = true; };
+  rl.on("line", cancelHandler);
 
-  const mergedDetections = await pollForMergedResult(handle, url);
+  const mergedDetections = await pollForMergedResult(handle, url, 300_000, 5_000, () => cancelled);
 
-  // Restore stdin state
-  if (process.stdin.isTTY && process.stdin.setRawMode) {
-    process.stdin.setRawMode(wasRaw ?? false);
-  }
-  process.stdin.pause();  // Let readline re-manage stdin flow on next question()
+  rl.removeListener("line", cancelHandler);
 
   spinner.stop();
 
