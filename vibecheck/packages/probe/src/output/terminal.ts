@@ -197,8 +197,8 @@ export function renderResults(
   }
   console.log();
 
-  // 6. WHAT WE FOUND + taxonomy table
-  console.log(`${INDENT}${chalk.bold.white("WHAT WE FOUND")}`);
+  // 6. WHAT THE SCAN FOUND + taxonomy table
+  console.log(`${INDENT}${chalk.bold.white("WHAT THE SCAN FOUND")}`);
   console.log(`${INDENT}${chalk.gray(LIGHT_SEP)}`);
   console.log();
   console.log(renderTaxonomyTable(detections, durationMs));

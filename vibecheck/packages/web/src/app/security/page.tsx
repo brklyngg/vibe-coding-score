@@ -196,10 +196,10 @@ export default function SecurityPage() {
           </p>
         </section>
 
-        {/* What we don't collect */}
+        {/* What the scan doesn't collect */}
         <section className="mb-10">
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-widest text-white/50">
-            What We Don&apos;t Collect
+            What The Scan Doesn&apos;t Collect
           </h2>
           <ul className="space-y-2 text-sm text-white/70">
             <li>

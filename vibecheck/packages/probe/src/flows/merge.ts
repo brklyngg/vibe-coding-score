@@ -100,7 +100,7 @@ export async function interactiveMerge(
   console.log(`    ${chalk.dim("This runs a read-only probe (open source: github.com/brklyngg/vibe-coding-score)")}`);
   console.log(`    ${chalk.dim("that checks which AI tools, MCP servers, and configs you have installed.")}`);
   console.log(`    ${chalk.dim("Nothing is modified. Nothing is sent over the network during the scan.")}`);
-  console.log(`    ${chalk.dim("The --merge-from flag combines your results with mine for a unified score.")}`);
+  console.log(`    ${chalk.dim("The --merge-from flag combines your results with theirs for a unified score.")}`);
   console.log();
   console.log(`    ${chalk.dim("To review the code first: npm info vibecheck-score")}`);
   console.log(`    ${chalk.dim(`To run: npx vibecheck-score --merge-from ${handle}`)}`);

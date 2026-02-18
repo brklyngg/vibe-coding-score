@@ -22,9 +22,9 @@ export const PIONEER_TAGLINE = "Off the map. Building what comes next.";
 export const PIONEER_HOOKS: Record<string, string> = {
   customMcp: "Built a custom MCP server — extending the AI's reach into new territory.",
   novelArchitecture: "Designed an agent architecture the taxonomy hasn't seen before.",
-  taxonomyBreaker: "Running patterns that forced us to update our understanding of what's possible.",
+  taxonomyBreaker: "Running patterns that forced an update to what the taxonomy considers possible.",
   ecosystemContributor: "Publishing tools that other developers use. Producer, not just consumer.",
-  unconventionalIntegration: "Connected AI to unexpected domains in ways we haven't seen before.",
+  unconventionalIntegration: "Connected AI to unexpected domains in ways the taxonomy hasn't mapped before.",
 };
 
 // -- Dimension commentary templates (placeholder slots for Phase 4) --
