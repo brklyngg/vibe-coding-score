@@ -7,7 +7,7 @@ export const MOCK_DETECTIONS: Detection[] = [
   {
     id: "anthropic-api-key",
     category: "intelligence",
-    name: "Anthropic API Key",
+    name: "Anthropic (Claude)",
     source: "~/.zshrc",
     confidence: "high",
     tier: "advanced",
@@ -16,7 +16,7 @@ export const MOCK_DETECTIONS: Detection[] = [
   {
     id: "openai-api-key",
     category: "intelligence",
-    name: "OpenAI API Key",
+    name: "OpenAI (GPT)",
     source: "~/.zshrc",
     confidence: "high",
     tier: "intermediate",
@@ -25,7 +25,7 @@ export const MOCK_DETECTIONS: Detection[] = [
   {
     id: "google-api-key",
     category: "intelligence",
-    name: "Google Gemini API Key",
+    name: "Google Gemini",
     source: "~/.zshrc",
     confidence: "high",
     tier: "intermediate",
@@ -306,7 +306,7 @@ export const MOCK_OBSERVER_DETECTIONS: Detection[] = [
   {
     id: "openai-api-key",
     category: "intelligence",
-    name: "OpenAI API Key",
+    name: "OpenAI (GPT)",
     source: "~/.zshrc",
     confidence: "high",
     tier: "basic",
