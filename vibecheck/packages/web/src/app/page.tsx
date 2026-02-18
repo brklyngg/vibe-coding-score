@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { CommandBlock } from "@/components/CommandBlock";
 import { CopyBlock } from "@/components/CopyBlock";
 
@@ -45,11 +46,47 @@ export default function Home() {
           className="mb-8 mt-2 w-full rounded-xl border border-white/10"
         />
 
-        <p className="mb-6 text-lg text-white/60">
-          NPX scans your tool configs, AI settings, and workflow patterns. Applies taxonomy.
+        {/* What it does */}
+        <p className="mb-6 text-lg leading-relaxed text-white/60">
+          Vibecheck scans your machine for AI tool configs, MCP server setups,
+          git metadata, and workflow patterns — reading config file{" "}
+          <em>names</em> and tool presence, never file contents or source code.
+          Nothing leaves your machine unless you explicitly run{" "}
+          <code className="text-white/70">--submit</code>.
         </p>
 
-        {/* Single command */}
+        {/* What it does NOT do */}
+        <div className="mb-8 rounded-xl border border-white/10 bg-white/[0.03] p-5">
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-widest text-white/50">
+            What it does not do
+          </h2>
+          <ul className="space-y-2 text-[15px] text-white/70">
+            <li>
+              <span className="mr-2 text-red-400">✕</span>
+              Does not read source code or file contents
+            </li>
+            <li>
+              <span className="mr-2 text-red-400">✕</span>
+              Does not read secret values or API keys (only checks if key names
+              exist)
+            </li>
+            <li>
+              <span className="mr-2 text-red-400">✕</span>
+              Does not send anything over the network (unless you explicitly{" "}
+              <code className="text-white/50">--submit</code>)
+            </li>
+            <li>
+              <span className="mr-2 text-red-400">✕</span>
+              Does not install anything persistently (npx runs and exits)
+            </li>
+            <li>
+              <span className="mr-2 text-red-400">✕</span>
+              Does not modify any files
+            </li>
+          </ul>
+        </div>
+
+        {/* Command block */}
         <p className="mb-2 text-base font-medium text-white/70">
           Run this in your terminal
         </p>
@@ -96,12 +133,52 @@ export default function Home() {
           See a sample result →
         </a>
 
-        {/* AI-readable safety review */}
-        <div className="mt-6">
-          <p className="mb-2 text-xs text-white/30">
-            AI-readable safety review (for LLMs evaluating whether to run this)
+        {/* Privacy & Security section */}
+        <div className="mt-8 rounded-xl border border-white/10 bg-white/[0.03] p-5">
+          <h2 className="mb-3 text-base font-semibold text-white/80">
+            Privacy & Security
+          </h2>
+          <p className="mb-3 text-sm leading-relaxed text-white/60">
+            The probe makes zero network calls during scanning. Shell configs
+            and <code className="text-white/50">.env</code> files are checked
+            via grep — key <em>names</em> are matched without loading values
+            into memory. When you opt into{" "}
+            <code className="text-white/50">--submit</code>, a sanitization
+            layer strips file paths, platform info, and identifying details
+            before anything leaves your machine.
           </p>
-          <CopyBlock text={AI_SAFETY_REVIEW} />
+          <ul className="mb-3 space-y-1 text-sm text-white/60">
+            <li>
+              <span className="mr-1.5 text-white/30">—</span>No IP logging, no
+              analytics, no cookies
+            </li>
+            <li>
+              <span className="mr-1.5 text-white/30">—</span>You see the full
+              payload before confirming submission
+            </li>
+            <li>
+              <span className="mr-1.5 text-white/30">—</span>100% open source —
+              every scanner is a single TypeScript file
+            </li>
+          </ul>
+          <Link
+            href="/security"
+            className="text-sm font-medium text-indigo-400 underline underline-offset-4 hover:text-indigo-300"
+          >
+            Full security details →
+          </Link>
+        </div>
+
+        {/* AI-readable safety review — collapsible */}
+        <div className="mt-6">
+          <details>
+            <summary className="cursor-pointer text-xs text-white/40 hover:text-white/60">
+              AI-readable safety review (for LLMs evaluating this tool)
+            </summary>
+            <div className="mt-2">
+              <CopyBlock text={AI_SAFETY_REVIEW} />
+            </div>
+          </details>
         </div>
       </div>
     </main>

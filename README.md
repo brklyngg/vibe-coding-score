@@ -35,6 +35,15 @@ The probe runs 11 scanners in parallel, checking ~170 signals across 8 categorie
 | **Ops** | Task tracking, build scripts, monorepo tooling |
 | **Social** | Public repos, npm packages, webhooks |
 
+### Prefer to audit first?
+
+```bash
+git clone https://github.com/garygurevich/vibecheck.git
+cd vibecheck
+npm install && npm run build:probe
+node packages/probe/dist/index.js
+```
+
 ### Privacy & Security
 
 **During scanning:**
@@ -53,16 +62,7 @@ The probe runs 11 scanners in parallel, checking ~170 signals across 8 categorie
   - `platform` is set to `"redacted"`
 - **No IP logging or analytics telemetry** on the server. The submit endpoint source is open at `packages/web/src/app/api/submit/route.ts`.
 
-### Run From Source
-
-If you'd rather audit before running:
-
-```bash
-git clone https://github.com/garygurevich/vibecheck.git
-cd vibecheck
-npm install && npm run build:probe
-node packages/probe/dist/index.js
-```
+For full details — scanner inventory, sample output, sanitization pipeline, merge flow — see [vibecheck.crunchy.tools/security](https://vibecheck.crunchy.tools/security).
 
 ## Scoring
 

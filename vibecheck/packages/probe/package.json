@@ -1,7 +1,7 @@
 {
   "name": "vibecheck-score",
   "version": "0.4.1",
-  "description": "Deep scan your AI coding setup — models, agents, MCP servers, memory, security, deploy pipeline",
+  "description": "Read-only local scanner for AI coding setups. Checks config files, tool presence, and git metadata. No network calls during scan. Open source.",
   "type": "module",
   "bin": {
     "vibecheck": "dist/index.js"
@@ -21,6 +21,9 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/brklyngg/vibe-coding-score.git"
+  },
+  "bugs": {
+    "url": "https://github.com/brklyngg/vibe-coding-score/issues"
   },
   "homepage": "https://vibecheck.crunchy.tools",
   "keywords": [
