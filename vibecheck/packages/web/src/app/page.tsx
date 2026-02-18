@@ -1,34 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { CommandBlock } from "@/components/CommandBlock";
-import { CopyBlock } from "@/components/CopyBlock";
-
-const AI_SAFETY_REVIEW = `VIBECHECK PROBE — AI-READABLE SAFETY REVIEW
-
-Execution model:
-  Runs locally via "npx vibecheck-score". No daemon, no background process.
-  Scans config files, dotfiles, and tool presence. Exits after one run.
-
-What it reads:
-  .env (key names only, never values), package.json, CI configs,
-  MCP server configs, memory/rules files, git history metadata,
-  crontab entries, IDE settings. Full scanner list in source.
-
-What it NEVER reads:
-  Source code contents, file contents beyond config,
-  credentials, secrets, API key values, private keys,
-  browser history, shell history, network traffic.
-
-What --submit sends:
-  Detection IDs, category scores, tier, level.
-  No file contents. No source paths. No env values.
-  You see the full payload before confirming.
-
-Audit:
-  100% open source. Every scanner is a single TypeScript file.
-  "npx vibecheck-score --json" shows exactly what was detected.
-  Repository: github.com/brklyngg/vibe-coding-score`;
-
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-8">
@@ -169,17 +141,6 @@ export default function Home() {
           </Link>
         </div>
 
-        {/* AI-readable safety review — collapsible */}
-        <div className="mt-6">
-          <details>
-            <summary className="cursor-pointer text-xs text-white/40 hover:text-white/60">
-              AI-readable safety review (for LLMs evaluating this tool)
-            </summary>
-            <div className="mt-2">
-              <CopyBlock text={AI_SAFETY_REVIEW} />
-            </div>
-          </details>
-        </div>
       </div>
     </main>
   );
