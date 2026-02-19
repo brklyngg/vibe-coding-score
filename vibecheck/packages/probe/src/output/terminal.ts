@@ -75,16 +75,18 @@ function renderTaxonomyTable(
     if (!firstCategory) lines.push("");
     firstCategory = false;
 
+    // Category header on its own line
+    lines.push(`${INDENT}  ${chalk.bold.cyan(CATEGORY_LABELS[cat])}`);
+
     for (let i = 0; i < items.length; i++) {
       const d = items[i];
-      const catLabel = i === 0 ? CATEGORY_LABELS[cat] : "";
       const isMcp = d.id.startsWith("mcp-");
       const displayName = isMcp ? d.id.replace(/^mcp-/, "") : d.name;
       const truncName = displayName.length > nameW ? displayName.slice(0, nameW - 1) + "…" : displayName;
       const badge = tierBadge(d.tier);
       const innovation = d.taxonomyMatch === null ? chalk.yellow(" *") : "";
       if (d.taxonomyMatch === null) hasInnovations = true;
-      lines.push(`${INDENT}  ${catLabel.padEnd(catW)} ${truncName.padEnd(nameW)} ${badge}${innovation}`);
+      lines.push(`${INDENT}    ${truncName.padEnd(nameW)} ${badge}${innovation}`);
 
       // Sub-lines for detections with named items
       const names = d.details?.names;
@@ -93,10 +95,10 @@ function renderTaxonomyTable(
         const maxShow = 5;
         const shown = nameList.slice(0, maxShow);
         for (const n of shown) {
-          lines.push(`${INDENT}  ${"".padEnd(catW)} ${chalk.gray("  › " + n)}`);
+          lines.push(`${INDENT}    ${chalk.gray("  › " + n)}`);
         }
         if (nameList.length > maxShow) {
-          lines.push(`${INDENT}  ${"".padEnd(catW)} ${chalk.gray(`  +${nameList.length - maxShow} more`)}`);
+          lines.push(`${INDENT}    ${chalk.gray(`  +${nameList.length - maxShow} more`)}`);
         }
       }
     }

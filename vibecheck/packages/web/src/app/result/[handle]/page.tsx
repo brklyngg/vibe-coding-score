@@ -207,7 +207,7 @@ export default async function ResultPage({ params }: PageProps) {
         <br />
 
         {/* WHAT WE FOUND */}
-        <p className="font-bold text-white">WHAT WE FOUND</p>
+        <p className="font-bold text-white">WHAT THE SCAN FOUND</p>
         <p className="text-white/30">{LIGHT_SEP}</p>
         <br />
 
@@ -215,21 +215,24 @@ export default async function ResultPage({ params }: PageProps) {
         {TAXONOMY_CATEGORIES.map((cat) => {
           const items = grouped.get(cat);
           if (!items || items.length === 0) return null;
-          return items.map((d, i) => {
-            const catLabel = i === 0 ? CATEGORY_LABELS[cat] : "";
-            const truncName = d.name.length > 40 ? d.name.slice(0, 39) + "…" : d.name;
-            const innovation = d.taxonomyMatch === null;
-            return (
-              <p key={d.id + i} className="leading-relaxed">
-                <span className="text-white/50">{catLabel.padEnd(14)}</span>
-                {" "}
-                <span className="text-white/70">{truncName.padEnd(40)}</span>
-                {" "}
-                <span className={tierBadgeClass(d.tier)}>{tierBadgeLabel(d.tier)}</span>
-                {innovation && <span className="text-yellow-400"> *</span>}
-              </p>
-            );
-          });
+          return (
+            <div key={cat} className="mb-1">
+              <p className="font-bold text-cyan-400 leading-relaxed">{"  "}{CATEGORY_LABELS[cat]}</p>
+              {items.map((d, i) => {
+                const truncName = d.name.length > 40 ? d.name.slice(0, 39) + "…" : d.name;
+                const innovation = d.taxonomyMatch === null;
+                return (
+                  <p key={d.id + i} className="leading-relaxed">
+                    {"    "}
+                    <span className="text-white/70">{truncName.padEnd(40)}</span>
+                    {" "}
+                    <span className={tierBadgeClass(d.tier)}>{tierBadgeLabel(d.tier)}</span>
+                    {innovation && <span className="text-yellow-400"> *</span>}
+                  </p>
+                );
+              })}
+            </div>
+          );
         })}
         <br />
         <p className="text-white/30">
