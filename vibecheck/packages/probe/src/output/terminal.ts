@@ -131,7 +131,28 @@ function renderKeyMechanisms(detections: Detection[]): string {
   lines.push(`${INDENT}${chalk.gray(LIGHT_SEP)}`);
   lines.push("");
 
+  // Deduplicate named mechanisms by their details.names array
+  // Only show the highest-tier version (e.g., "5+ custom subagents" instead of also showing "Claude Code subagents" + "2+ custom subagents")
+  const seenMechanisms = new Map<string, Detection>();
+  const tierRank: Record<string, number> = {
+    basic: 0,
+    intermediate: 1,
+    advanced: 2,
+    elite: 3,
+  };
+
   for (const d of named) {
+    const names = d.details!.names as string[];
+    const key = JSON.stringify(names.sort()); // Use sorted names as key for dedup
+    const existing = seenMechanisms.get(key);
+
+    // Keep the highest-tier version
+    if (!existing || (tierRank[d.tier] ?? 0) > (tierRank[existing.tier] ?? 0)) {
+      seenMechanisms.set(key, d);
+    }
+  }
+
+  for (const d of seenMechanisms.values()) {
     const names = d.details!.names as string[];
     const maxShow = 6;
     const shown = names.slice(0, maxShow).join(", ");
