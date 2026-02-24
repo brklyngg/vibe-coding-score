@@ -93,7 +93,7 @@ export async function interactiveMerge(
 
   // Poll for merged results from Machine B
   console.log(`  ${chalk.yellow("⏳")} Waiting for the other machine... ${chalk.gray("(press Enter to skip)")}`);
-  const spinner = createSpinner("Polling for merged results...");
+  const spinner = createSpinner("Polling for merged results...", { discardStdin: false });
   spinner.start();
 
   // Cancel detection via readline (keeps stdin state clean for rl.question() after)

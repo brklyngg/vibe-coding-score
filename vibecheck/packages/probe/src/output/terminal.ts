@@ -173,8 +173,8 @@ function renderKeyMechanisms(detections: Detection[]): string {
   return lines.join("\n");
 }
 
-export function createSpinner(text: string) {
-  return ora({ text, spinner: "dots" });
+export function createSpinner(text: string, opts?: { discardStdin?: boolean }) {
+  return ora({ text, spinner: "dots", ...opts });
 }
 
 export function renderResults(
