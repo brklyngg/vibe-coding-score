@@ -24,7 +24,7 @@ vibecheck/
 │       │   ├── index.ts           # Barrel re-exports
 │       │   ├── submit.ts          # submitResult() — token management, sanitization, sends fullDetections, returns token
 │       │   ├── sanitize.ts        # sanitizeForSubmit() — whitelist layer that strips sensitive details before network calls
-│       │   ├── compare.ts         # compareApi() + interactiveCompare() + maybeMergeFirst() — compare creation/join with pre-merge option
+│       │   ├── compare.ts         # compareApi() + interactiveCompare() — compare creation/join
 │       │   ├── merge.ts           # interactiveMerge() + fetchRemoteDetections() — multi-machine merge (returns ProbeResult | null)
 │       │   └── post-scan.ts       # postScanFlow() — 3-option interactive menu after every scan
 │       ├── taxonomy/
@@ -123,7 +123,7 @@ Terminal output: top separator → VIBE CODER SCORE header → level/tier + tagl
 
 ## Post-Scan Flow
 
-After every interactive scan (non-JSON, non-flag), results are auto-submitted silently and the analysis URL is displayed in a prominent green box. The post-scan menu is a non-destructive loop: Enter opens the browser then re-shows remaining options (merge, compare); choosing merge or compare runs that flow, removes it from the menu, re-displays the analysis URL box, and loops. The menu exits when no numbered options remain and the browser has been opened, or the user presses Enter on "Done." The post-merge menu inside `interactiveMerge()` follows the same loop pattern with [1] Compare + [Enter]. If submit fails (offline), Enter simply exits. The compare path includes a `maybeMergeFirst()` prompt before joining, available in both flag (`--compare`) and interactive paths.
+After every interactive scan (non-JSON, non-flag), results are auto-submitted silently and the analysis URL is displayed in a prominent green box. The post-scan menu is a non-destructive loop: Enter opens the browser then re-shows remaining options (merge, compare); choosing merge or compare runs that flow, removes it from the menu, re-displays the analysis URL box, and loops. The menu exits when no numbered options remain and the browser has been opened, or the user presses Enter on "Done." The post-merge menu inside `interactiveMerge()` follows the same loop pattern with [1] Compare + [Enter]. If submit fails (offline), Enter simply exits. The compare path goes directly to compare — merge is available as a separate menu option.
 
 ## Compare Mode
 

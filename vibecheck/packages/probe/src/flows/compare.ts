@@ -2,7 +2,6 @@ import type { Interface as RLInterface } from "node:readline/promises";
 import type { ProbeResult } from "@vibe/scoring";
 import chalk from "chalk";
 import { submitResult } from "./submit.js";
-import { interactiveMerge } from "./merge.js";
 import { openBrowser } from "../utils/open.js";
 
 export interface CompareResult {
@@ -39,41 +38,14 @@ export async function compareApi(opts: {
   }
 }
 
-export async function maybeMergeFirst(
-  rl: RLInterface,
-  result: ProbeResult,
-  url: string,
-): Promise<ProbeResult> {
-  const sep = "─".repeat(42);
-  console.log();
-  console.log(`  ${chalk.gray(sep)}`);
-  console.log(`  Do you also use AI tools on another machine?`);
-  console.log(`  ${chalk.white("[1]")} Yes — merge first, then join comparison`);
-  console.log(`  ${chalk.white("[2]")} No — continue ${chalk.gray("(or press Enter)")}`);
-  console.log(`  ${chalk.gray(sep)}`);
-
-  const answer = await rl.question(`\n  Choice: `);
-  const choice = answer.trim();
-
-  if (choice === "1") {
-    const merged = await interactiveMerge(rl, result, url);
-    return merged ?? result;
-  }
-
-  return result;
-}
-
 export async function interactiveCompare(
   rl: RLInterface,
   result: ProbeResult,
   url: string,
 ): Promise<void> {
-  // Step 0: offer merge before compare
-  const finalResult = await maybeMergeFirst(rl, result, url);
-
   // Step 1: submit the result
   const submitOutcome = await submitResult({
-    result: finalResult,
+    result,
     url,
     skipConfirm: true,
     silent: true,
