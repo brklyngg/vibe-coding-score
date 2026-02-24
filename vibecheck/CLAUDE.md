@@ -158,6 +158,10 @@ Two merge modes: `--merge <file>` (local JSON) and `--merge-from <handle>` (remo
 - `chat_window_start` (TIMESTAMPTZ) — rate limit window start
 - Analysis cache is cleared on re-submit (update path sets both to null)
 
+## Flow Diagram
+
+`VIBECHECK_FLOW.md` (project root) is a shareable high-level diagram of how Vibecheck works — single-machine flow, two-machine merge, compare-with-a-friend, scoring categories, and the two-tier privacy model. When the session-closer skill is invoked in this project, review `VIBECHECK_FLOW.md` against the current codebase and update it if anything has changed (new scanners, modified flows, renamed endpoints, etc.). Only make changes when the diagram no longer accurately represents the code.
+
 ## Context Docs
 
 Source specs live in `../Context/`: PRD v2.4, Taxonomy v1.3, Audio transcript. These define the full scoring rubric, taxonomy entries, and tone.
