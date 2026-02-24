@@ -206,7 +206,7 @@ export default async function ResultPage({ params }: PageProps) {
         })}
         <br />
 
-        {/* WHAT WE FOUND */}
+        {/* WHAT THE SCAN FOUND */}
         <p className="font-bold text-white">WHAT THE SCAN FOUND</p>
         <p className="text-white/30">{LIGHT_SEP}</p>
         <br />
