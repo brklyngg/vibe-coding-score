@@ -1,6 +1,14 @@
 # Vibe Coder Score
 
-Scan your AI coding setup and get a score. Detects models, agents, MCP servers, memory systems, deploy pipelines, security practices, and more — then rates your setup across 8 dimensions.
+[![npm version](https://img.shields.io/npm/v/vibecheck-score)](https://www.npmjs.com/package/vibecheck-score)
+[![npm downloads](https://img.shields.io/npm/dm/vibecheck-score)](https://www.npmjs.com/package/vibecheck-score)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+**Scan your AI coding setup and get a score.** Detects models, agents, MCP servers, memory systems, deploy pipelines, security practices, and more — then rates your setup across 8 dimensions.
+
+🌐 **[vibecheck.crunchy.tools](https://vibecheck.crunchy.tools)**
+
+---
 
 ## Quick Start
 
@@ -8,7 +16,35 @@ Scan your AI coding setup and get a score. Detects models, agents, MCP servers, 
 npx vibecheck-score
 ```
 
-That's it. Run it in any project directory (or your home directory for a global scan).
+Runs in ~3 seconds. No installs beyond npx. No network calls during scanning.
+
+### Sample Output
+
+```
+  VIBE CODER SCORE
+
+  Level 72 · Architect
+  "Context windows are your canvas. Connections are your brushstrokes."
+
+    Intelligence  ████████░░   78
+    Tooling       ██████████  100
+    Continuity    ████████░░   82
+    Autonomy      ██████████  100
+    Ship          ██████░░░░   60
+    Security      ███████░░░   70
+    Ops           █████░░░░░   45
+    Social        ███░░░░░░░   28
+
+  KEY MECHANISMS
+    Claude Code skills: handoff, review, session-closer, memory
+    OpenClaw orchestrator
+    Custom MCP servers (3 detected)
+    CLAUDE.md deep continuity context
+
+  GROWTH AREAS
+    🚀 Ship (60/100) — Add test coverage and formalize your deploy pipeline
+    📊 Ops (45/100) — Structured task tracking would boost your score here
+```
 
 ### Options
 
@@ -20,9 +56,11 @@ That's it. Run it in any project directory (or your home directory for a global 
 --compare       Create or join a side-by-side comparison
 ```
 
+---
+
 ## What It Scans
 
-The probe runs 11 scanners in parallel, checking ~170 signals across 8 categories:
+The probe runs 11 scanners in parallel, checking ~200 signals across 8 categories:
 
 | Category | What it looks for |
 |----------|-------------------|
@@ -35,6 +73,20 @@ The probe runs 11 scanners in parallel, checking ~170 signals across 8 categorie
 | **Ops** | Task tracking, build scripts, monorepo tooling |
 | **Social** | Public repos, npm packages, webhooks |
 
+### Tiers
+
+| Score | Tier | Description |
+|-------|------|-------------|
+| 0–10 | **Observer** | Getting started |
+| 11–20 | **Apprentice** | Basic tooling in place |
+| 21–30 | **Practitioner** | Using AI consistently |
+| 31–45 | **Builder** | Shipping with AI |
+| 46–55 | **Operator** | Deep tool ecosystem |
+| 56–65 | **Commander** | AI-native workflows |
+| 66–75 | **Architect** | System-level thinking |
+| 76–85 | **Orchestrator** | Multi-agent mastery |
+| 86–100 | **Industrialist** | Full-stack AI production |
+
 ### Prefer to audit first?
 
 ```bash
@@ -44,7 +96,9 @@ npm install && npm run build:probe
 node packages/probe/dist/index.js
 ```
 
-### Privacy & Security
+---
+
+## Privacy & Security
 
 **During scanning:**
 - **No network calls** during scanning. The only network call is `--submit`, which is opt-in.
@@ -64,17 +118,19 @@ node packages/probe/dist/index.js
 
 For full details — scanner inventory, sample output, sanitization pipeline, merge flow — see [vibecheck.crunchy.tools/security](https://vibecheck.crunchy.tools/security).
 
+---
+
 ## Scoring
 
-Each detection earns points based on its tier (basic through elite). Points are weighted across the 8 categories to produce a score from 0-100 and a tier title:
-
-**Observer** (0-10) > **Apprentice** (11-20) > **Practitioner** (21-30) > **Builder** (31-45) > **Operator** (46-55) > **Commander** (56-65) > **Architect** (66-75) > **Orchestrator** (76-85) > **Industrialist** (86-100)
-
-You also get a 4-letter type code (like MARC or VGCD) describing your style across intelligence, autonomy, shipping, and depth dimensions.
+Each detection earns points based on its tier (basic through elite). Points are weighted across the 8 categories to produce a score from 0-100 and a tier title. You also get a **4-letter type code** (like MARC or VGCD) describing your style across intelligence, autonomy, shipping, and depth dimensions.
 
 ## Web App
 
-Results submitted with `--submit` are viewable at `vibecheck.crunchy.tools/result/<handle>`, including an OG image card for sharing. The `--compare` flag enables side-by-side comparisons.
+Results submitted with `--submit` are viewable at `vibecheck.crunchy.tools/result/<handle>`, including an OG image card for sharing on Twitter, LinkedIn, or anywhere.
+
+The `--compare` flag enables side-by-side comparisons: create a session code, share it with a teammate, and see exactly where your setups diverge.
+
+---
 
 ## Monorepo Structure
 
