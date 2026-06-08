@@ -34,7 +34,7 @@ vibecheck/
 │       └── output/
 │           ├── terminal.ts        # chalk + ora rich CLI output (wrapText helper, expanded taxonomy table, no next-tier)
 │           └── narrative.ts       # Data-driven narrative: references MCP server names, tool names, pattern counts
-└── packages/web/       # Next.js 15: vibecheck.dev
+└── packages/web/       # Next.js 15: vibecheck.crunchy.tools
     └── src/
         ├── app/
         │   ├── api/og/[handle]/route.tsx                    # Satori OG image generation

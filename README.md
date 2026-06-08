@@ -2,7 +2,6 @@
 
 [![npm version](https://img.shields.io/npm/v/vibecheck-score)](https://www.npmjs.com/package/vibecheck-score)
 [![npm downloads](https://img.shields.io/npm/dm/vibecheck-score)](https://www.npmjs.com/package/vibecheck-score)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **Scan your AI coding setup and get a score.** Detects models, agents, MCP servers, memory systems, deploy pipelines, security practices, and more — then rates your setup across 8 dimensions.
 
@@ -90,8 +89,8 @@ The probe runs 11 scanners in parallel, checking ~200 signals across 8 categorie
 ### Prefer to audit first?
 
 ```bash
-git clone https://github.com/garygurevich/vibecheck.git
-cd vibecheck
+git clone https://github.com/brklyngg/vibe-coding-score.git
+cd vibe-coding-score/vibecheck
 npm install && npm run build:probe
 node packages/probe/dist/index.js
 ```
@@ -149,9 +148,9 @@ npm run build:web     # Build web app
 npm run dev:web       # Next.js dev server
 ```
 
-## Contributing
+## Development
 
-Issues and PRs welcome. If you want to add a new scanner or detection signal:
+Issues and feedback welcome. To run it locally or add a new scanner or detection signal:
 
 1. Add entries to `packages/probe/src/taxonomy/registry.json`
 2. Implement the detection logic in the appropriate scanner under `packages/probe/src/scanners/`
@@ -159,4 +158,4 @@ Issues and PRs welcome. If you want to add a new scanner or detection signal:
 
 ## License
 
-MIT
+© Gary Gurevich. All rights reserved. This source is publicly viewable but not licensed for reuse, redistribution, or derivative works.
